@@ -45,19 +45,18 @@ export async function transitionTo(transactionIdOrDoc, newState, meta = {}) {
   transaction.state = newState;
   await transaction.save();
 
-  // TODO: Audit logging and Socket.IO live emission handled here once socket instance is passed in meta or req context
   try {
-    const io = meta.io;
-    const reason = meta.reason || `State transitioned from ${currentState} to ${newState}`;
-    const actor = meta.actor || "SYSTEM";
+    const { io, reason, actor, ...cleanMeta } = meta;
+    const logReason = reason || `State transitioned from ${currentState} to ${newState}`;
+    const logActor = actor || "SYSTEM";
 
     await logAudit({
       transactionId: transaction._id,
       action: `TRANSITION_${newState}`,
-      reason,
-      actor,
+      reason: logReason,
+      actor: logActor,
       result: newState,
-      metadata: { previousState: currentState, newState, ...meta },
+      metadata: { previousState: currentState, newState, ...cleanMeta },
       io,
     });
 

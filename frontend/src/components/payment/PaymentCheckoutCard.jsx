@@ -35,9 +35,118 @@ export default function PaymentCheckoutCard({ transaction, onStateUpdated }) {
       setTxn(res.data.transaction);
       setLastResponse(res.data);
       if (onStateUpdated) onStateUpdated(res.data.transaction);
+      return res.data.order;
     } catch (err) {
       console.error("Create order error:", err);
-      alert("Failed to create order: " + (err.response?.data?.error || err.message));
+      alert("Failed to create Razorpay Order: " + (err.response?.data?.error || err.message));
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  // Opens REAL Razorpay Standard Checkout Modal (or Test Mode Popup)
+  async function handlePayWithRazorpayModal() {
+    setIsLoading(true);
+    try {
+      // 1. Ensure order is created on backend
+      let order = null;
+      if (!txn.razorpayOrderId) {
+        order = await handleCreateOrder();
+      } else {
+        const orderRes = await api.post("/payments/orders", { transactionId: txn._id });
+        order = orderRes.data.order;
+      }
+
+      if (!order || !order.id) {
+        alert("Unable to generate Razorpay order ID for checkout.");
+        setIsLoading(false);
+        return;
+      }
+
+      // Determine active Razorpay Key ID
+      const frontendKey = import.meta.env.VITE_RAZORPAY_KEY_ID;
+      const backendKey = order.key_id;
+
+      let validKey = "rzp_test_TXFlxgI55rE33Z"; // Default to user test key
+      if (frontendKey && frontendKey.startsWith("rzp_") && !frontendKey.includes("xxxxx")) {
+        validKey = frontendKey;
+      } else if (backendKey && backendKey.startsWith("rzp_") && !backendKey.includes("xxxxx")) {
+        validKey = backendKey;
+      }
+
+      // 2. Configure Razorpay Standard Modal options
+      const options = {
+        key: validKey,
+        amount: txn.amountInPaise,
+        currency: "INR",
+        name: "AgentPay Escrow",
+        description: `Escrow Payment for ${txn.productId?.name || "B2B Order"}`,
+        prefill: {
+          name: "AgentPay Buyer Agent",
+          email: "buyer@agentpay.demo",
+          contact: "9876543210",
+        },
+        theme: {
+          color: "#4f46e5",
+        },
+        handler: async function (response) {
+          console.log("Razorpay Checkout Success Response:", response);
+          setIsLoading(true);
+          try {
+            const verifyRes = await api.post("/payments/verify", {
+              transactionId: txn._id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_order_id: response.razorpay_order_id || order.id,
+              razorpay_signature: response.razorpay_signature || "simulated_sig",
+            });
+
+            setLastResponse(verifyRes.data);
+            await refreshTxn();
+          } catch (verifyErr) {
+            console.error("Payment verification error:", verifyErr);
+            alert("Payment signature verification failed: " + (verifyErr.response?.data?.error || verifyErr.message));
+          } finally {
+            setIsLoading(false);
+          }
+        },
+        modal: {
+          ondismiss: async function () {
+            console.log("Razorpay Checkout modal dismissed by user.");
+            setIsLoading(false);
+          },
+        },
+      };
+
+      // Only pass order_id if it's a real order created on Razorpay API servers
+      if (order && order.isMock === false && order.id && !order.id.includes("_17")) {
+        options.order_id = order.id;
+      }
+
+      // 3. Open Razorpay Checkout Modal
+      if (window.Razorpay) {
+        const rzp = new window.Razorpay(options);
+        rzp.on("payment.failed", async function (response) {
+          console.error("Razorpay Payment Failed Event:", response.error);
+          try {
+            const failRes = await api.post("/payments/failed", {
+              transactionId: txn._id,
+              errorDescription: response.error?.description || "Payment declined at Razorpay Checkout",
+              errorReason: response.error?.reason,
+            });
+            setLastResponse(failRes.data);
+            await refreshTxn();
+          } catch (err) {
+            console.error("Report payment failure error:", err);
+          }
+        });
+        rzp.open();
+      } else {
+        alert("Razorpay Checkout SDK script not loaded. Check internet connection.");
+      }
+    } catch (err) {
+      console.error("Razorpay modal trigger error:", err);
+      alert("Razorpay checkout error: " + (err.response?.data?.error || err.message));
     } finally {
       setIsLoading(false);
     }
@@ -119,32 +228,33 @@ export default function PaymentCheckoutCard({ transaction, onStateUpdated }) {
 
         {/* Action Panel based on state */}
         <div className="space-y-4">
-          {txn.state === "PAYMENT_PENDING" && (
-            <div className="p-4 bg-brand-50/50 border border-brand-100 rounded-xl space-y-3">
-              <h3 className="text-sm font-bold text-ink-900">Step 1: Create Razorpay Escrow Order</h3>
-              <p className="text-xs text-ink-700">
-                Initiate escrow transaction to generate Razorpay Order ID.
-              </p>
-              <Button variant="primary" disabled={isLoading} onClick={handleCreateOrder}>
-                {isLoading ? "Creating Order..." : "🚀 Create Razorpay Escrow Order"}
-              </Button>
-            </div>
-          )}
+          {(txn.state === "PAYMENT_PENDING" || txn.state === "PAYMENT_PROCESSING" || txn.state === "RESERVED" || txn.state === "AGREED") && (
+            <div className="space-y-4 p-4 bg-brand-50/50 border border-brand-100 rounded-2xl">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-bold text-ink-900">Execute Razorpay Payment</h3>
+                  <p className="text-xs text-ink-700">
+                    Pay via official Razorpay Checkout popup (Supports Test Cards, Netbanking & UPI).
+                  </p>
+                </div>
+                {txn.razorpayOrderId && (
+                  <span className="text-xs font-mono bg-white px-2 py-1 rounded border border-brand-200 text-brand-700">
+                    Order ID: {txn.razorpayOrderId}
+                  </span>
+                )}
+              </div>
 
-          {(txn.state === "PAYMENT_PENDING" || txn.state === "PAYMENT_PROCESSING") && (
-            <div className="space-y-4 p-4 bg-surface-alt rounded-2xl border border-surface-border">
-              <h3 className="text-sm font-bold text-ink-900">Step 2: Execute Idempotent Escrow Payment</h3>
-              <p className="text-xs text-ink-400">
-                Test both standard happy path and payment timeout recovery flow.
-              </p>
-
-              <div className="flex flex-wrap gap-3">
-                <Button variant="primary" disabled={isLoading} onClick={() => handleInitiatePayment(false)}>
-                  {isLoading ? "Processing..." : "⚡ Execute Payment (Happy Path)"}
+              <div className="flex flex-wrap gap-3 pt-2">
+                <Button variant="primary" disabled={isLoading} onClick={handlePayWithRazorpayModal} className="shadow-md">
+                  {isLoading ? "Opening Razorpay..." : "💳 Pay via Razorpay Checkout Modal"}
                 </Button>
 
-                <Button variant="secondary" className="border-warning text-warning-dark hover:bg-warning-light/50" disabled={isLoading} onClick={() => handleInitiatePayment(true)}>
-                  ⏱️ Simulate Payment Timeout (Hero Demo Scene 6)
+                <Button variant="secondary" disabled={isLoading} onClick={() => handleInitiatePayment(false)}>
+                  ⚡ Auto-Simulate Successful Payment
+                </Button>
+
+                <Button variant="secondary" className="border-warning text-warning-dark hover:bg-warning-light/50 text-xs" disabled={isLoading} onClick={() => handleInitiatePayment(true)}>
+                  ⏱️ Simulate Payment Timeout (Scene 6)
                 </Button>
               </div>
             </div>
@@ -183,6 +293,28 @@ export default function PaymentCheckoutCard({ transaction, onStateUpdated }) {
             </div>
           )}
 
+          {txn.state === "PAYMENT_FAILED" && (
+            <div className="p-5 bg-red-50 border-2 border-red-200 rounded-2xl space-y-3 animate-fadeIn">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-xl bg-red-600 text-white flex items-center justify-center font-bold text-xl">
+                  ✕
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-red-900">Payment Declined / Failed</h3>
+                  <p className="text-xs text-red-700 mt-0.5">
+                    {txn.paymentFailureReason || "The payment attempt was declined or cancelled at Razorpay checkout."}
+                  </p>
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <Button variant="primary" disabled={isLoading} onClick={handlePayWithRazorpayModal}>
+                  🔄 Retry Payment via Razorpay
+                </Button>
+              </div>
+            </div>
+          )}
+
           {txn.state === "PAID" && (
             <div className="p-5 bg-success-light border-2 border-success/40 rounded-2xl text-center space-y-2 animate-fadeIn">
               <div className="w-12 h-12 rounded-full bg-success text-white flex items-center justify-center text-2xl font-bold mx-auto">
@@ -193,7 +325,7 @@ export default function PaymentCheckoutCard({ transaction, onStateUpdated }) {
                 Razorpay Payment ID: {txn.razorpayPaymentId || "pay_verified"}
               </p>
               <p className="text-[11px] text-success-dark/70">
-                Payment verified cleanly via Razorpay webhook. Inventory locked and fulfillment initiated.
+                Payment verified cleanly via Razorpay checkout & webhook. Inventory locked and fulfillment initiated.
               </p>
             </div>
           )}
