@@ -282,7 +282,7 @@ export default function NegotiationThread({
             </div>
 
             {/* Offer Timeline Bubbles */}
-            <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+            <div className="space-y-4 max-h-[400px] overflow-y-auto no-scrollbar pr-2">
               {negotiation.offers.map((offer, idx) => (
                 <OfferBubble
                   key={idx}

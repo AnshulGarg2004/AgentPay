@@ -1,5 +1,4 @@
 import { Menu, Zap } from "lucide-react";
-import Badge from "../common/Badge.jsx";
 
 export default function Topbar({ onToggleMobile, activeTabName = "Dashboard", health, socketConnected, onNavigate }) {
   return (
@@ -34,22 +33,6 @@ export default function Topbar({ onToggleMobile, activeTabName = "Dashboard", he
           </div>
         </div>
 
-        {/* Right: Health & System Badges */}
-        <div className="flex items-center space-x-3 text-xs font-mono">
-          <div className="flex items-center space-x-2 bg-surface-alt px-3 py-1.5 rounded-xl border border-surface-border">
-            <span className="text-ink-400 text-[11px]">API:</span>
-            <Badge status={health?.status === "ok" ? "PAID" : "FAILED"}>
-              {health?.status === "ok" ? "OK" : "Offline"}
-            </Badge>
-          </div>
-
-          <div className="flex items-center space-x-2 bg-surface-alt px-3 py-1.5 rounded-xl border border-surface-border">
-            <span className="text-ink-400 text-[11px]">Socket:</span>
-            <Badge status={socketConnected ? "PAID" : "PENDING"}>
-              {socketConnected ? "Connected" : "Connecting"}
-            </Badge>
-          </div>
-        </div>
       </div>
     </header>
   );

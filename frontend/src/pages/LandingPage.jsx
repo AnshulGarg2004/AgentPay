@@ -23,7 +23,7 @@ export default function LandingPage({ onNavigate }) {
         <div className="relative z-10 space-y-6">
           <div className="inline-flex items-center space-x-2 bg-brand-500/10 border border-brand-500/30 px-3.5 py-1.5 rounded-full text-brand-500 text-xs font-semibold font-mono">
             <span>⚡</span>
-            <span>Agent<span className="brand-pay">Pay</span> Protocol v1.0 • Built for Hackathon Judges</span>
+            <span>Agent<span className="brand-pay">Pay</span> Protocol v1.0 • Autonomous Escrow Engine</span>
           </div>
 
           <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight max-w-4xl mx-auto leading-tight">

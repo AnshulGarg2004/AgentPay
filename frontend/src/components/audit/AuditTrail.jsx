@@ -76,7 +76,7 @@ export default function AuditTrail({ transactionId }) {
         <p className="text-xs text-[#828fa3] py-6 italic text-center">No node execution logs recorded yet.</p>
       ) : (
         /* Vertical Node Flow Graph */
-        <div className="flex flex-col items-center space-y-0 py-2 relative">
+        <div className="flex flex-col items-center space-y-0 py-2 relative no-scrollbar">
           {logs.map((log, index) => {
             const isLatest = index === logs.length - 1;
             const { icon, isRejected } = getActorNodeInfo(log.actor, log.action, log.result);

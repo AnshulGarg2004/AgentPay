@@ -32,13 +32,13 @@ export default function StateTimeline({ currentState }) {
         <h4 className="text-xs font-bold uppercase tracking-wider text-ink-400">
           AgentPay Lifecycle Protocol
         </h4>
-        <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-full bg-surface border border-surface-border text-brand-500">
+        <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.2)]">
           State: {currentState}
         </span>
       </div>
 
       {/* Horizontal Step Timeline */}
-      <div className="flex items-center justify-between overflow-x-auto py-2 gap-1">
+      <div className="flex items-center justify-between overflow-x-auto no-scrollbar py-2 gap-1">
         {ORDERED_STEPS.map((step, idx) => {
           const isCompleted = activeIndex > idx || currentState === "PAID" || currentState === "COMPLETED";
           const isCurrent = step.key === currentState || (isHumanApproval && step.key === "POLICY_EVALUATED");
@@ -47,13 +47,13 @@ export default function StateTimeline({ currentState }) {
           let labelClass = "text-ink-400 font-normal";
 
           if (isCompleted) {
-            dotClass = "bg-emerald-500 border-emerald-400 text-white shadow-[0_0_6px_rgba(16,185,129,0.5)] font-bold";
-            labelClass = "text-emerald-400 font-semibold";
+            dotClass = "bg-emerald-500 border-emerald-400 text-white shadow-[0_0_10px_rgba(16,185,129,0.75)] font-bold";
+            labelClass = "text-emerald-400 font-semibold drop-shadow-[0_0_6px_rgba(16,185,129,0.4)]";
           } else if (isCurrent) {
             dotClass = isHumanApproval
-              ? "bg-warning border-warning text-white ring-2 ring-warning/30 shadow-[0_0_6px_rgba(245,158,11,0.5)] animate-pulse font-bold"
-              : "bg-brand-500 border-brand-400 text-white ring-2 ring-brand-500/30 shadow-[0_0_6px_rgba(124,58,237,0.5)] animate-pulse font-bold";
-            labelClass = isHumanApproval ? "text-warning font-bold" : "text-brand-400 font-bold";
+              ? "bg-warning border-amber-300 text-white ring-2 ring-warning/50 shadow-[0_0_12px_rgba(245,158,11,0.75)] animate-pulse font-bold"
+              : "bg-emerald-500 border-emerald-300 text-white ring-2 ring-emerald-500/50 shadow-[0_0_14px_rgba(16,185,129,0.85)] animate-pulse font-bold";
+            labelClass = isHumanApproval ? "text-warning font-bold drop-shadow-[0_0_6px_rgba(245,158,11,0.4)]" : "text-emerald-400 font-bold drop-shadow-[0_0_6px_rgba(16,185,129,0.4)]";
           }
 
           return (
@@ -64,31 +64,37 @@ export default function StateTimeline({ currentState }) {
                   <div className="h-0.5 flex-1 bg-surface-border relative overflow-hidden">
                     {(isCompleted || (isCurrent && idx <= activeIndex)) && (
                       <motion.div
+                        key={`left-${step.key}-${isCompleted ? "done" : "active"}`}
                         initial={{ scaleX: 0 }}
                         animate={{ scaleX: 1 }}
-                        transition={{ duration: 0.4, delay: idx * 0.05, ease: "easeOut" }}
-                        className="absolute inset-0 bg-emerald-500 shadow-[0_0_4px_rgba(16,185,129,0.4)] origin-left"
+                        transition={{ duration: 0.5, delay: idx * 0.04, ease: [0.16, 1, 0.3, 1] }}
+                        className="absolute inset-0 bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.8)] origin-left"
                       />
                     )}
                   </div>
                 )}
 
                 {/* Node Circle */}
-                <div
-                  className={`w-5 h-5 shrink-0 aspect-square rounded-full border flex items-center justify-center text-[9px] font-mono transition-all z-10 ${dotClass}`}
+                <motion.div
+                  key={`node-${step.key}-${isCompleted ? "done" : isCurrent ? "current" : "pending"}`}
+                  initial={{ scale: 0.7 }}
+                  animate={{ scale: isCurrent ? [1, 1.25, 1] : 1 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                  className={`w-5 h-5 shrink-0 aspect-square rounded-full border flex items-center justify-center text-[9px] font-mono transition-colors z-10 ${dotClass}`}
                 >
                   {isCompleted ? "✓" : idx + 1}
-                </div>
+                </motion.div>
 
                 {/* Connecting Line Right */}
                 {idx < ORDERED_STEPS.length - 1 && (
                   <div className="h-0.5 flex-1 bg-surface-border relative overflow-hidden">
                     {isCompleted && (
                       <motion.div
+                        key={`right-${step.key}-${isCompleted ? "done" : "active"}`}
                         initial={{ scaleX: 0 }}
                         animate={{ scaleX: 1 }}
-                        transition={{ duration: 0.4, delay: idx * 0.05, ease: "easeOut" }}
-                        className="absolute inset-0 bg-emerald-500 shadow-[0_0_4px_rgba(16,185,129,0.4)] origin-left"
+                        transition={{ duration: 0.5, delay: idx * 0.04 + 0.1, ease: [0.16, 1, 0.3, 1] }}
+                        className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.8)] origin-left"
                       />
                     )}
                   </div>

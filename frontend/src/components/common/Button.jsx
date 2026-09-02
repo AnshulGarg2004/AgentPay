@@ -10,7 +10,7 @@ export default function Button({
   onClick,
   ...props
 }) {
-  const baseClasses = "inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-150 focus:outline-none";
+  const baseClasses = "inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-150 focus:outline-none whitespace-nowrap shrink-0";
 
   const variants = {
     primary: "bg-gradient-to-r from-brand-500 via-brand-600 to-glow-cyan text-white shadow-md hover:shadow-glow border border-brand-500/30",

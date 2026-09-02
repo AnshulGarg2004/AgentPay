@@ -55,7 +55,7 @@ export default function ApprovalQueue() {
           </p>
         </div>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-3 shrink-0">
           <Badge status={pendingTxns.length > 0 ? "PENDING" : "PAID"}>
             {pendingTxns.length} Pending Review{pendingTxns.length === 1 ? "" : "s"}
           </Badge>

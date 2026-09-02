@@ -14,7 +14,7 @@ export default function Badge({ children, status = "default", className = "" }) 
   }
 
   return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold font-mono tracking-wide ${colorClasses} ${className}`}>
+    <span className={`inline-flex items-center justify-center whitespace-nowrap shrink-0 px-3 py-1 rounded-full text-xs font-semibold font-mono tracking-wide ${colorClasses} ${className}`}>
       {children || status}
     </span>
   );

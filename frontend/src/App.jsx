@@ -129,6 +129,7 @@ export default function App() {
         <Topbar
           onToggleMobile={() => setMobileSidebarOpen(!mobileSidebarOpen)}
           activeTabName={activeTabName}
+          activeTab={activeTab}
           health={health}
           socketConnected={socketConnected}
           onNavigate={(tab) => setActiveTab(tab)}
@@ -238,11 +239,10 @@ export default function App() {
                             setSelectedProductId(p._id);
                             setNegotiationPreFill(null);
                           }}
-                          className={`px-3 py-2 rounded-xl text-xs font-medium border text-left transition-all ${
-                            isSelected
+                          className={`px-3 py-2 rounded-xl text-xs font-medium border text-left transition-all ${isSelected
                               ? "bg-brand-500/20 border-brand-500 text-white ring-2 ring-brand-500/30"
                               : "bg-surface-alt border-surface-border text-ink-700 hover:bg-surface-border hover:text-white"
-                          }`}
+                            }`}
                         >
                           <div className="font-semibold">{p.name}</div>
                           <div className="text-[11px] font-mono text-ink-400 mt-0.5">
@@ -278,14 +278,13 @@ export default function App() {
 
         {/* Footer */}
         <footer className="bg-surface border-t border-surface-border py-6 px-8 text-center text-xs text-ink-400">
-          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center space-x-2 font-mono">
+          <div className="max-w-7xl mx-auto flex items-center justify-center font-mono">
+            <div className="flex items-center space-x-2">
               <span className="w-2 h-2 rounded-full bg-brand-500 shadow-glow" />
               <span>
-                Agent<span className="brand-pay">Pay</span> Protocol • Non-LLM Governance & Escrow Settlement
+                Agent<span className="brand-pay">Pay</span> Protocol • Autonomous AI Governance & Escrow Settlement
               </span>
             </div>
-            <div>Built with React, Vite, Tailwind CSS, Express, MongoDB & Socket.IO</div>
           </div>
         </footer>
       </div>

@@ -100,7 +100,7 @@ export default function LiveActivityFeed({ transactionId = null }) {
       </div>
 
       {/* Node Stream Container */}
-      <div className="max-h-96 overflow-y-auto pr-1 space-y-0 relative">
+      <div className="max-h-96 overflow-y-auto no-scrollbar pr-1 space-y-0 relative">
         {logs.length === 0 ? (
           <p className="text-xs text-[#828fa3] italic text-center py-8">
             Awaiting real-time socket events & workflow execution nodes...

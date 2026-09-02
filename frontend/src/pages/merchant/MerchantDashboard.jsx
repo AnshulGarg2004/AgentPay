@@ -13,6 +13,7 @@ export default function MerchantDashboard({ onSelectTransaction }) {
   const { analytics, isLoading: isAnalyticsLoading, refetch: refetchAnalytics } = useMerchantAnalytics("all");
   const [transactions, setTransactions] = useState([]);
   const [isTxnsLoading, setIsTxnsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     fetchTransactions();
@@ -20,7 +21,8 @@ export default function MerchantDashboard({ onSelectTransaction }) {
 
   function fetchTransactions() {
     setIsTxnsLoading(true);
-    api.get("/transactions?limit=10")
+    return api
+      .get("/transactions?limit=10")
       .then((txnsRes) => {
         setTransactions(txnsRes.data || []);
       })
@@ -28,10 +30,18 @@ export default function MerchantDashboard({ onSelectTransaction }) {
       .finally(() => setIsTxnsLoading(false));
   }
 
-  function handleRefresh() {
-    refetchAnalytics();
-    fetchTransactions();
+  async function handleRefresh() {
+    setIsRefreshing(true);
+    try {
+      await Promise.all([refetchAnalytics(), fetchTransactions()]);
+    } catch (err) {
+      console.error("Failed to refresh analytics:", err);
+    } finally {
+      setTimeout(() => setIsRefreshing(false), 400);
+    }
   }
+
+  const isLoadingNow = isRefreshing || isAnalyticsLoading;
 
   return (
     <div className="space-y-8">
@@ -43,9 +53,11 @@ export default function MerchantDashboard({ onSelectTransaction }) {
         </div>
         <button
           onClick={handleRefresh}
-          className="text-xs text-brand-500 font-semibold border border-surface-border bg-surface-alt px-3 py-1.5 rounded-xl hover:bg-surface-border hover:text-white shadow-sm transition-all"
+          disabled={isLoadingNow}
+          className="text-xs text-brand-400 font-semibold border border-surface-border bg-surface-alt px-3.5 py-1.5 rounded-xl hover:bg-surface-border hover:text-white shadow-sm transition-all flex items-center space-x-2 cursor-pointer disabled:opacity-50"
         >
-          🔄 Refresh Analytics
+          <span className={`inline-block transition-transform ${isLoadingNow ? "animate-spin" : ""}`}>🔄</span>
+          <span>{isLoadingNow ? "Refreshing..." : "Refresh Analytics"}</span>
         </button>
       </div>
 
