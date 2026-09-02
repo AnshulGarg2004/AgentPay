@@ -4,6 +4,7 @@ import Card from "../common/Card.jsx";
 import Button from "../common/Button.jsx";
 import Badge from "../common/Badge.jsx";
 import ApprovalModal from "./ApprovalModal.jsx";
+import ThresholdBar from "./ThresholdBar.jsx";
 import { formatRupee } from "../../lib/format.js";
 import { api } from "../../lib/api.js";
 
@@ -107,6 +108,14 @@ export default function ApprovalQueue() {
                       <span className="text-xs text-ink-400 uppercase block font-medium">Transaction Value</span>
                       <span className="text-xl font-bold font-mono text-brand-500">{formatRupee(txn.amountInPaise)}</span>
                     </div>
+                  </div>
+
+                  {/* Threshold Bar Component */}
+                  <div className="p-3 bg-surface rounded-xl border border-surface-border">
+                    <ThresholdBar
+                      amountInPaise={txn.amountInPaise || 0}
+                      thresholdInPaise={buyer.constitution?.autoApproveLimitInPaise || 5000000}
+                    />
                   </div>
 
                   {/* EXACT POLICY ENGINE REASON STRINGS DISPLAY */}

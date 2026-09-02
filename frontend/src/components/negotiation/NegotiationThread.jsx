@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Card from "../common/Card.jsx";
 import Button from "../common/Button.jsx";
 import Badge from "../common/Badge.jsx";
 import OfferBubble from "./OfferBubble.jsx";
 import QuoteCard from "../quote/QuoteCard.jsx";
 import PaymentCheckoutCard from "../payment/PaymentCheckoutCard.jsx";
+import PriceComparisonBar from "./PriceComparisonBar.jsx";
 import { api } from "../../lib/api.js";
 import { formatRupee } from "../../lib/format.js";
 
@@ -29,6 +30,15 @@ export default function NegotiationThread({
   const [isLoading, setIsLoading] = useState(false);
   const [activeQuote, setActiveQuote] = useState(null);
   const [acceptedTxn, setAcceptedTxn] = useState(null);
+
+  const offersEndRef = useRef(null);
+
+  // Auto-scroll timeline to newest offer message
+  useEffect(() => {
+    if (negotiation?.offers?.length) {
+      offersEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [negotiation?.offers?.length]);
 
   // Fetch product details on mount or productId change
   useEffect(() => {
@@ -93,6 +103,28 @@ export default function NegotiationThread({
     } catch (err) {
       console.error("Counter offer failed:", err);
       alert("Counter offer failed: " + (err.response?.data?.error || err.message));
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function handleAcceptMerchantCounterOffer(merchantOffer) {
+    if (!negotiation?._id || !merchantOffer?.unitPriceInPaise) return;
+    setIsLoading(true);
+    try {
+      const res = await api.post(`/negotiations/${negotiation._id}/offer`, {
+        sender: "BUYER_AGENT",
+        action: "ACCEPT",
+        quantity: Number(merchantOffer.quantity || quantity || 1),
+        unitPriceInPaise: Number(merchantOffer.unitPriceInPaise),
+        deliveryDays: Number(merchantOffer.deliveryDays || deliveryDays || 3),
+        notes: `Accepted merchant counter offer of ${formatRupee(merchantOffer.unitPriceInPaise)}`,
+      });
+
+      setNegotiation(res.data);
+    } catch (err) {
+      console.error("Accepting counter offer failed:", err);
+      alert("Accept counter offer failed: " + (err.response?.data?.error || err.message));
     } finally {
       setIsLoading(false);
     }
@@ -252,63 +284,103 @@ export default function NegotiationThread({
             {/* Offer Timeline Bubbles */}
             <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
               {negotiation.offers.map((offer, idx) => (
-                <OfferBubble key={idx} offer={offer} />
+                <OfferBubble
+                  key={idx}
+                  offer={offer}
+                  onAccept={negotiation.status === "OPEN" ? handleAcceptMerchantCounterOffer : null}
+                />
               ))}
+              <div ref={offersEndRef} />
             </div>
 
             {/* Status-specific Action Bar */}
-            {negotiation.status === "OPEN" && (
-              <div className="pt-4 border-t border-surface-border space-y-4">
-                <h4 className="text-xs font-semibold uppercase tracking-wide text-ink-400">Submit Buyer Counter Offer</h4>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-xs text-ink-400 mb-1">Counter Unit Price (₹)</label>
-                    <input
-                      type="number"
-                      value={targetPriceRupees}
-                      onChange={(e) => setTargetPriceRupees(e.target.value)}
-                      className="w-full px-3 py-1.5 rounded-lg border border-surface-border bg-surface text-xs font-mono text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-ink-400 mb-1">Quantity</label>
-                    <input
-                      type="number"
-                      value={quantity}
-                      onChange={(e) => setQuantity(e.target.value)}
-                      className="w-full px-3 py-1.5 rounded-lg border border-surface-border bg-surface text-xs font-mono text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-ink-400 mb-1">Delivery (Days)</label>
-                    <input
-                      type="number"
-                      value={deliveryDays}
-                      onChange={(e) => setDeliveryDays(e.target.value)}
-                      className="w-full px-3 py-1.5 rounded-lg border border-surface-border bg-surface text-xs font-mono text-white"
-                    />
-                  </div>
-                </div>
+            {negotiation.status === "OPEN" && (() => {
+              const lastMerchantOffer = negotiation.offers?.slice().reverse().find(
+                (o) => (o.sender === "MERCHANT_AGENT" || o.sender === "POLICY_ENGINE") && (o.action?.toUpperCase() === "COUNTER" || o.action?.toUpperCase() === "OFFER")
+              );
 
-                <div className="flex justify-end">
-                  <Button variant="primary" size="sm" disabled={isLoading} onClick={handleSubmitCounterOffer}>
-                    {isLoading ? "Sending Counter..." : "💬 Send Counter Offer"}
-                  </Button>
+              return (
+                <div className="pt-4 border-t border-surface-border space-y-4">
+                  {/* Accept Merchant Counter Offer Quick Action Banner */}
+                  {lastMerchantOffer && (
+                    <div className="p-3.5 bg-success-dark/30 border border-success/40 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-glow">
+                      <div>
+                        <span className="text-xs font-bold text-success flex items-center gap-1.5">
+                          <span>⚡</span> Merchant Counter Offer Available
+                        </span>
+                        <p className="text-xs text-ink-400 mt-0.5">
+                          Unit Price: <strong className="text-white font-mono">{formatRupee(lastMerchantOffer.unitPriceInPaise)}</strong> | Quantity: <strong className="text-white font-mono">{lastMerchantOffer.quantity}</strong> | Delivery: <strong className="text-white font-mono">{lastMerchantOffer.deliveryDays} days</strong>
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        disabled={isLoading}
+                        onClick={() => handleAcceptMerchantCounterOffer(lastMerchantOffer)}
+                        className="px-4 py-2 bg-success text-white font-bold rounded-xl text-xs hover:bg-success-dark transition-all shadow-glow flex items-center justify-center space-x-1.5 cursor-pointer shrink-0"
+                      >
+                        <span>{isLoading ? "Accepting..." : `✅ Accept Merchant Offer (${formatRupee(lastMerchantOffer.unitPriceInPaise)})`}</span>
+                      </button>
+                    </div>
+                  )}
+
+                  <h4 className="text-xs font-semibold uppercase tracking-wide text-ink-400">Or Submit Buyer Counter Offer</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-xs text-ink-400 mb-1">Counter Unit Price (₹)</label>
+                      <input
+                        type="number"
+                        value={targetPriceRupees}
+                        onChange={(e) => setTargetPriceRupees(e.target.value)}
+                        className="w-full px-3 py-1.5 rounded-lg border border-surface-border bg-surface text-xs font-mono text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-ink-400 mb-1">Quantity</label>
+                      <input
+                        type="number"
+                        value={quantity}
+                        onChange={(e) => setQuantity(e.target.value)}
+                        className="w-full px-3 py-1.5 rounded-lg border border-surface-border bg-surface text-xs font-mono text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-ink-400 mb-1">Delivery (Days)</label>
+                      <input
+                        type="number"
+                        value={deliveryDays}
+                        onChange={(e) => setDeliveryDays(e.target.value)}
+                        className="w-full px-3 py-1.5 rounded-lg border border-surface-border bg-surface text-xs font-mono text-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <Button variant="primary" size="sm" disabled={isLoading} onClick={handleSubmitCounterOffer}>
+                      {isLoading ? "Sending Counter..." : "💬 Send Custom Counter Offer"}
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
             {negotiation.status === "AGREED" && !activeQuote && (
-              <div className="p-4 bg-success-dark/40 border border-success/30 rounded-xl flex items-center justify-between">
-                <div>
-                  <h4 className="text-sm font-bold text-success">🎉 Terms Agreed by Merchant AI!</h4>
-                  <p className="text-xs text-ink-400 mt-0.5">
-                    Final Agreed Unit Price: {formatRupee(negotiation.agreedOffer?.unitPriceInPaise)} | Qty: {negotiation.agreedOffer?.quantity}
-                  </p>
+              <div className="space-y-4">
+                <PriceComparisonBar
+                  askingPriceInPaise={product.priceInPaise}
+                  offerPriceInPaise={initialTargetPriceInPaise || negotiation.agreedOffer?.unitPriceInPaise}
+                  agreedPriceInPaise={negotiation.agreedOffer?.unitPriceInPaise}
+                />
+                <div className="p-4 bg-success-dark/40 border border-success/30 rounded-xl flex items-center justify-between">
+                  <div>
+                    <h4 className="text-sm font-bold text-success">🎉 Terms Agreed by Merchant AI!</h4>
+                    <p className="text-xs text-ink-400 mt-0.5">
+                      Final Agreed Unit Price: {formatRupee(negotiation.agreedOffer?.unitPriceInPaise)} | Qty: {negotiation.agreedOffer?.quantity}
+                    </p>
+                  </div>
+                  <Button variant="primary" disabled={isLoading} onClick={handleGenerateQuote}>
+                    {isLoading ? "Generating Quote..." : "📜 Lock & Generate Immutable Quote"}
+                  </Button>
                 </div>
-                <Button variant="primary" disabled={isLoading} onClick={handleGenerateQuote}>
-                  {isLoading ? "Generating Quote..." : "📜 Lock & Generate Immutable Quote"}
-                </Button>
               </div>
             )}
           </Card>

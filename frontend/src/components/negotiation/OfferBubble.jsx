@@ -1,7 +1,7 @@
 import Badge from "../common/Badge.jsx";
 import { formatRupee } from "../../lib/format.js";
 
-export default function OfferBubble({ offer }) {
+export default function OfferBubble({ offer, onAccept }) {
   const isBuyer = offer.sender === "BUYER_AGENT";
   const isMerchant = offer.sender === "MERCHANT_AGENT";
 
@@ -61,6 +61,20 @@ export default function OfferBubble({ offer }) {
         <p className="text-xs text-ink-700 italic mt-2 bg-surface-alt p-2.5 rounded-lg border border-surface-border">
           "{offer.reasoning}"
         </p>
+      )}
+
+      {/* Accept Counter Offer Button inside Merchant Bubble */}
+      {isMerchant && (offer.action?.toUpperCase() === "COUNTER" || offer.action?.toUpperCase() === "OFFER") && onAccept && (
+        <div className="mt-3 pt-2.5 border-t border-surface-border flex items-center justify-between">
+          <span className="text-[11px] text-ink-400 font-medium">Merchant proposed terms</span>
+          <button
+            type="button"
+            onClick={() => onAccept(offer)}
+            className="px-3.5 py-1.5 bg-success text-white font-bold rounded-xl text-xs hover:bg-success-dark transition-all shadow-glow flex items-center space-x-1.5 cursor-pointer"
+          >
+            <span>✅ Accept Merchant Offer ({formatRupee(offer.unitPriceInPaise)})</span>
+          </button>
+        </div>
       )}
 
       {/* Timestamp */}

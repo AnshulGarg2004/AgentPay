@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import Card from "../../components/common/Card.jsx";
 import StatCard from "../../components/common/StatCard.jsx";
 import Badge from "../../components/common/Badge.jsx";
+import BudgetGauge from "../../components/common/BudgetGauge.jsx";
 import { formatRupee } from "../../lib/format.js";
 import { api } from "../../lib/api.js";
 
@@ -24,7 +25,12 @@ export default function BuyerDashboard({ onSelectTransaction }) {
 
   const totalVolumePaise = transactions.reduce((acc, t) => acc + (t.amountInPaise || 0), 0);
   const paidTxns = transactions.filter((t) => t.state === "PAID" || t.state === "COMPLETED");
+  const paidVolumePaise = paidTxns.reduce((acc, t) => acc + (t.amountInPaise || 0), 0);
   const pendingTxns = transactions.filter((t) => t.state === "HUMAN_APPROVAL_REQUIRED" || t.state === "PAYMENT_PENDING");
+
+  // Sample sparkline data points for StatCards
+  const volumeSparkline = [1200000, 1800000, 1500000, 2400000, 3100000, totalVolumePaise];
+  const paidSparkline = [1, 2, 2, 3, paidTxns.length];
 
   return (
     <div className="space-y-8">
@@ -34,28 +40,43 @@ export default function BuyerDashboard({ onSelectTransaction }) {
         <p className="text-sm text-ink-400 mt-1">Autonomous procurement history, policy evaluation statuses, and escrow settlements.</p>
       </div>
 
-      {/* StatCards Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          title="Total Procurement Volume"
-          value={formatRupee(totalVolumePaise)}
-          subtitle="Agent Negotiated Orders"
-        />
-        <StatCard
-          title="Completed Purchases"
-          value={paidTxns.length}
-          subtitle="Settled via Escrow"
-        />
-        <StatCard
-          title="Pending Settlement"
-          value={pendingTxns.length}
-          subtitle="Awaiting Approval / Payment"
-        />
-        <StatCard
-          title="Policy Compliance Rate"
-          value="100%"
-          subtitle="Zero Unauthorized Capital Loss"
-        />
+      {/* Top Grid: BudgetGauge + StatCards */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Left Column (5 cols): Donut Budget Gauge */}
+        <div className="lg:col-span-5">
+          <BudgetGauge spentInPaise={paidVolumePaise} limitInPaise={50000000} />
+        </div>
+
+        {/* Right Column (7 cols): StatCards Grid */}
+        <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <StatCard
+            title="Total Procurement Volume"
+            value={formatRupee(totalVolumePaise)}
+            subtitle="Agent Negotiated Orders"
+            sparklineData={volumeSparkline}
+            sparklineColor="brand"
+          />
+          <StatCard
+            title="Completed Purchases"
+            value={paidTxns.length}
+            subtitle="Settled via Escrow"
+            sparklineData={paidSparkline}
+            sparklineColor="success"
+          />
+          <StatCard
+            title="Pending Settlement"
+            value={pendingTxns.length}
+            subtitle="Awaiting Approval / Payment"
+            highlight={pendingTxns.length > 0}
+          />
+          <StatCard
+            title="Policy Compliance Rate"
+            value="100%"
+            subtitle="Zero Unauthorized Capital Loss"
+            sparklineData={[100, 100, 100, 100]}
+            sparklineColor="success"
+          />
+        </div>
       </div>
 
       {/* Buyer Orders List */}

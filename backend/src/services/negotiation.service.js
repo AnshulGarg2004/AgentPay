@@ -1,7 +1,9 @@
 import Negotiation from "../models/Negotiation.model.js";
 import Product from "../models/Product.model.js";
 import Merchant from "../models/Merchant.model.js";
+import BuyerAgent from "../models/BuyerAgent.model.js";
 import { generateMerchantNegotiationResponse } from "./ai/negotiationAgent.js";
+import { evaluatePolicy } from "./policyEngine.service.js";
 import { logAudit } from "./audit.service.js";
 
 export async function createNegotiation({ productId, buyerId, quantity, targetPriceInPaise, requestedDeliveryDays, notes, io = null }) {
@@ -10,6 +12,8 @@ export async function createNegotiation({ productId, buyerId, quantity, targetPr
 
   const merchant = await Merchant.findById(product.merchantId);
   if (!merchant) throw new Error("Merchant not found");
+
+  const buyerAgent = buyerId ? await BuyerAgent.findById(buyerId) : null;
 
   const qty = Number(quantity || 1);
   const targetPrice = targetPriceInPaise ? Number(targetPriceInPaise) : product.priceInPaise;
@@ -46,7 +50,9 @@ export async function createNegotiation({ productId, buyerId, quantity, targetPr
     },
   });
 
-  const merchantOffer = {
+  const floorPrice = product.minPriceInPaise || Math.round((product.priceInPaise || 0) * 0.85);
+
+  let merchantOffer = {
     sender: "MERCHANT_AGENT",
     action: merchantResponse.action,
     unitPriceInPaise: merchantResponse.unitPriceInPaise,
@@ -55,29 +61,60 @@ export async function createNegotiation({ productId, buyerId, quantity, targetPr
     reasoning: merchantResponse.reasoning,
   };
 
-  await logAudit({
-    action: `MERCHANT_${merchantResponse.action}`,
-    reason: merchantResponse.reasoning,
-    actor: "MERCHANT_AGENT",
-    result: merchantResponse.action,
-    metadata: { counterPriceInPaise: merchantResponse.unitPriceInPaise },
-    io,
-  });
-
   let status = "OPEN";
   let agreedOffer = null;
 
+  // 3. Policy Check ONLY when attempting to ACCEPT an offer
   if (merchantResponse.action === "ACCEPT") {
-    status = "AGREED";
-    agreedOffer = {
-      unitPriceInPaise: merchantResponse.unitPriceInPaise,
-      quantity: merchantResponse.quantity,
-      deliveryDays: merchantResponse.deliveryDays,
-      subtotalInPaise: merchantResponse.unitPriceInPaise * merchantResponse.quantity,
-    };
+    const totalAmountPaise = targetPrice * qty;
+    const listPricePaise = (product.priceInPaise || 0) * qty;
+    const discountPct = listPricePaise > 0 ? Math.max(0, Math.round(((listPricePaise - totalAmountPaise) / listPricePaise) * 100)) : 0;
+
+    const policyCheck = evaluatePolicy({
+      action: "purchase",
+      amountInPaise: totalAmountPaise,
+      category: product.attributes?.category || "",
+      merchantVerified: merchant?.verified ?? true,
+      discountPct,
+      buyerConstitution: buyerAgent?.constitution || {},
+      merchantConstitution: merchant?.constitution || {},
+    });
+
+    if (!policyCheck.authorized) {
+      // Cannot accept proposed discount/price due to policy limits. Convert ACCEPT to COUNTER at floor price!
+      merchantOffer.action = "COUNTER";
+      merchantOffer.unitPriceInPaise = floorPrice;
+      merchantOffer.reasoning = `Merchant AI cannot accept proposed discount (${discountPct}%). Counter-offering policy-compliant floor price of ₹${(floorPrice / 100).toLocaleString('en-IN')}. (${policyCheck.reasons.join(" | ")})`;
+
+      await logAudit({
+        action: "POLICY_CONVERT_TO_COUNTER",
+        reason: merchantOffer.reasoning,
+        actor: "POLICY_ENGINE",
+        result: "COUNTER_OFFERED",
+        metadata: { counterPriceInPaise: floorPrice, policyReasons: policyCheck.reasons },
+        io,
+      });
+    } else {
+      status = "AGREED";
+      agreedOffer = {
+        unitPriceInPaise: merchantResponse.unitPriceInPaise,
+        quantity: merchantResponse.quantity,
+        deliveryDays: merchantResponse.deliveryDays,
+        subtotalInPaise: merchantResponse.unitPriceInPaise * merchantResponse.quantity,
+      };
+    }
   } else if (merchantResponse.action === "REJECT") {
     status = "REJECTED";
   }
+
+  await logAudit({
+    action: `MERCHANT_${merchantOffer.action}`,
+    reason: merchantOffer.reasoning,
+    actor: "MERCHANT_AGENT",
+    result: merchantOffer.action,
+    metadata: { counterPriceInPaise: merchantOffer.unitPriceInPaise },
+    io,
+  });
 
   const negotiation = await Negotiation.create({
     productId,
@@ -91,7 +128,7 @@ export async function createNegotiation({ productId, buyerId, quantity, targetPr
   return negotiation;
 }
 
-export async function addOfferToNegotiation(negotiationId, { sender, quantity, unitPriceInPaise, deliveryDays, notes, io = null }) {
+export async function addOfferToNegotiation(negotiationId, { sender, action, quantity, unitPriceInPaise, deliveryDays, notes, io = null }) {
   const negotiation = await Negotiation.findById(negotiationId);
   if (!negotiation) throw new Error("Negotiation thread not found");
 
@@ -101,10 +138,44 @@ export async function addOfferToNegotiation(negotiationId, { sender, quantity, u
 
   const product = await Product.findById(negotiation.productId);
   const merchant = await Merchant.findById(negotiation.merchantId);
+  const buyerAgent = negotiation.buyerId ? await BuyerAgent.findById(negotiation.buyerId) : null;
 
   const qty = Number(quantity || 1);
   const price = Number(unitPriceInPaise);
   const delivery = Number(deliveryDays || 3);
+
+  // If Buyer explicitly ACCEPTS the merchant's counter-offer:
+  if (action === "ACCEPT" || action === "ACCEPT_COUNTER") {
+    const buyerAcceptOffer = {
+      sender: sender || "BUYER_AGENT",
+      action: "ACCEPT",
+      unitPriceInPaise: price,
+      quantity: qty,
+      deliveryDays: delivery,
+      reasoning: notes || `Accepted merchant counter offer of ₹${(price / 100).toLocaleString('en-IN')}`,
+    };
+
+    negotiation.offers.push(buyerAcceptOffer);
+    negotiation.status = "AGREED";
+    negotiation.agreedOffer = {
+      unitPriceInPaise: price,
+      quantity: qty,
+      deliveryDays: delivery,
+      subtotalInPaise: price * qty,
+    };
+
+    await logAudit({
+      action: "ACCEPT_MERCHANT_OFFER",
+      reason: buyerAcceptOffer.reasoning,
+      actor: "BUYER_AGENT",
+      result: "TERMS_AGREED",
+      metadata: { unitPriceInPaise: price, quantity: qty },
+      io,
+    });
+
+    await negotiation.save();
+    return negotiation;
+  }
 
   // Record Buyer counter-offer
   const newBuyerOffer = {
@@ -139,7 +210,9 @@ export async function addOfferToNegotiation(negotiationId, { sender, quantity, u
     },
   });
 
-  const merchantOffer = {
+  const floorPrice = product.minPriceInPaise || Math.round((product.priceInPaise || 0) * 0.85);
+
+  let merchantOffer = {
     sender: "MERCHANT_AGENT",
     action: merchantResponse.action,
     unitPriceInPaise: merchantResponse.unitPriceInPaise,
@@ -148,28 +221,58 @@ export async function addOfferToNegotiation(negotiationId, { sender, quantity, u
     reasoning: merchantResponse.reasoning,
   };
 
-  negotiation.offers.push(merchantOffer);
-
-  await logAudit({
-    action: `MERCHANT_${merchantResponse.action}`,
-    reason: merchantResponse.reasoning,
-    actor: "MERCHANT_AGENT",
-    result: merchantResponse.action,
-    metadata: { counterPriceInPaise: merchantResponse.unitPriceInPaise },
-    io,
-  });
-
   if (merchantResponse.action === "ACCEPT") {
-    negotiation.status = "AGREED";
-    negotiation.agreedOffer = {
-      unitPriceInPaise: merchantResponse.unitPriceInPaise,
-      quantity: merchantResponse.quantity,
-      deliveryDays: merchantResponse.deliveryDays,
-      subtotalInPaise: merchantResponse.unitPriceInPaise * merchantResponse.quantity,
-    };
+    const totalAmountPaise = price * qty;
+    const listPricePaise = (product.priceInPaise || 0) * qty;
+    const discountPct = listPricePaise > 0 ? Math.max(0, Math.round(((listPricePaise - totalAmountPaise) / listPricePaise) * 100)) : 0;
+
+    const policyCheck = evaluatePolicy({
+      action: "purchase",
+      amountInPaise: totalAmountPaise,
+      category: product.attributes?.category || "",
+      merchantVerified: merchant?.verified ?? true,
+      discountPct,
+      buyerConstitution: buyerAgent?.constitution || {},
+      merchantConstitution: merchant?.constitution || {},
+    });
+
+    if (!policyCheck.authorized) {
+      // Cannot accept proposed discount/price due to policy limits. Convert ACCEPT to COUNTER at floor price!
+      merchantOffer.action = "COUNTER";
+      merchantOffer.unitPriceInPaise = floorPrice;
+      merchantOffer.reasoning = `Merchant AI cannot accept proposed discount (${discountPct}%). Counter-offering policy-compliant floor price of ₹${(floorPrice / 100).toLocaleString('en-IN')}. (${policyCheck.reasons.join(" | ")})`;
+
+      await logAudit({
+        action: "POLICY_CONVERT_TO_COUNTER",
+        reason: merchantOffer.reasoning,
+        actor: "POLICY_ENGINE",
+        result: "COUNTER_OFFERED",
+        metadata: { counterPriceInPaise: floorPrice, policyReasons: policyCheck.reasons },
+        io,
+      });
+    } else {
+      negotiation.status = "AGREED";
+      negotiation.agreedOffer = {
+        unitPriceInPaise: merchantResponse.unitPriceInPaise,
+        quantity: merchantResponse.quantity,
+        deliveryDays: merchantResponse.deliveryDays,
+        subtotalInPaise: merchantResponse.unitPriceInPaise * merchantResponse.quantity,
+      };
+    }
   } else if (merchantResponse.action === "REJECT") {
     negotiation.status = "REJECTED";
   }
+
+  negotiation.offers.push(merchantOffer);
+
+  await logAudit({
+    action: `MERCHANT_${merchantOffer.action}`,
+    reason: merchantOffer.reasoning,
+    actor: "MERCHANT_AGENT",
+    result: merchantOffer.action,
+    metadata: { counterPriceInPaise: merchantOffer.unitPriceInPaise },
+    io,
+  });
 
   await negotiation.save();
   return negotiation;

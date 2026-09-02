@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { TRANSACTION_STATES } from "../../constants/transactionStates.js";
 
 const ORDERED_STEPS = [
@@ -42,17 +43,17 @@ export default function StateTimeline({ currentState }) {
           const isCompleted = activeIndex > idx || currentState === "PAID" || currentState === "COMPLETED";
           const isCurrent = step.key === currentState || (isHumanApproval && step.key === "POLICY_EVALUATED");
 
-          let dotClass = "bg-surface border-surface-border text-ink-400";
+          let dotClass = "bg-surface border-surface-border text-ink-400 opacity-60";
           let labelClass = "text-ink-400 font-normal";
 
           if (isCompleted) {
-            dotClass = "bg-success border-success text-white shadow-sm";
-            labelClass = "text-white font-semibold";
+            dotClass = "bg-emerald-500 border-emerald-400 text-white shadow-[0_0_6px_rgba(16,185,129,0.5)] font-bold";
+            labelClass = "text-emerald-400 font-semibold";
           } else if (isCurrent) {
             dotClass = isHumanApproval
-              ? "bg-warning border-warning text-white ring-4 ring-warning/20 animate-pulse"
-              : "bg-brand-500 border-brand-500 text-white ring-4 ring-brand-500/20 animate-pulse";
-            labelClass = "text-brand-500 font-bold";
+              ? "bg-warning border-warning text-white ring-2 ring-warning/30 shadow-[0_0_6px_rgba(245,158,11,0.5)] animate-pulse font-bold"
+              : "bg-brand-500 border-brand-400 text-white ring-2 ring-brand-500/30 shadow-[0_0_6px_rgba(124,58,237,0.5)] animate-pulse font-bold";
+            labelClass = isHumanApproval ? "text-warning font-bold" : "text-brand-400 font-bold";
           }
 
           return (
@@ -60,27 +61,37 @@ export default function StateTimeline({ currentState }) {
               <div className="flex items-center w-full">
                 {/* Connecting Line Left */}
                 {idx > 0 && (
-                  <div
-                    className={`h-0.5 flex-1 transition-colors ${
-                      isCompleted || (isCurrent && idx <= activeIndex) ? "bg-success" : "bg-surface-border"
-                    }`}
-                  />
+                  <div className="h-0.5 flex-1 bg-surface-border relative overflow-hidden">
+                    {(isCompleted || (isCurrent && idx <= activeIndex)) && (
+                      <motion.div
+                        initial={{ scaleX: 0 }}
+                        animate={{ scaleX: 1 }}
+                        transition={{ duration: 0.4, delay: idx * 0.05, ease: "easeOut" }}
+                        className="absolute inset-0 bg-emerald-500 shadow-[0_0_4px_rgba(16,185,129,0.4)] origin-left"
+                      />
+                    )}
+                  </div>
                 )}
 
                 {/* Node Circle */}
                 <div
-                  className={`w-5 h-5 rounded-full border flex items-center justify-center text-[9px] font-mono font-bold transition-all ${dotClass}`}
+                  className={`w-5 h-5 shrink-0 aspect-square rounded-full border flex items-center justify-center text-[9px] font-mono transition-all z-10 ${dotClass}`}
                 >
                   {isCompleted ? "✓" : idx + 1}
                 </div>
 
                 {/* Connecting Line Right */}
                 {idx < ORDERED_STEPS.length - 1 && (
-                  <div
-                    className={`h-0.5 flex-1 transition-colors ${
-                      isCompleted ? "bg-success" : "bg-surface-border"
-                    }`}
-                  />
+                  <div className="h-0.5 flex-1 bg-surface-border relative overflow-hidden">
+                    {isCompleted && (
+                      <motion.div
+                        initial={{ scaleX: 0 }}
+                        animate={{ scaleX: 1 }}
+                        transition={{ duration: 0.4, delay: idx * 0.05, ease: "easeOut" }}
+                        className="absolute inset-0 bg-emerald-500 shadow-[0_0_4px_rgba(16,185,129,0.4)] origin-left"
+                      />
+                    )}
+                  </div>
                 )}
               </div>
 

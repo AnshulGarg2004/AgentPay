@@ -34,7 +34,7 @@ export async function startNegotiation(req, res, next) {
 export async function submitOffer(req, res, next) {
   try {
     const { id } = req.params;
-    const { sender, quantity, unitPriceInPaise, deliveryDays, notes } = req.body;
+    const { sender, action, quantity, unitPriceInPaise, deliveryDays, notes } = req.body;
 
     if (!unitPriceInPaise) {
       return res.status(400).json({ error: "unitPriceInPaise is required for offer" });
@@ -44,6 +44,7 @@ export async function submitOffer(req, res, next) {
 
     const negotiation = await addOfferToNegotiation(id, {
       sender,
+      action,
       quantity,
       unitPriceInPaise,
       deliveryDays,

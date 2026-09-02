@@ -19,8 +19,13 @@ import { socket } from "./lib/socket.js";
 import { formatRupee } from "./lib/format.js";
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState("buyer-console"); // default to buyer-console
-  const [selectedTxnId, setSelectedTxnId] = useState(null);
+  const [activeTab, setActiveTab] = useState(() => {
+    const saved = localStorage.getItem("agentpay_active_tab");
+    return saved || "buyer-console";
+  });
+  const [selectedTxnId, setSelectedTxnId] = useState(() => {
+    return localStorage.getItem("agentpay_selected_txn_id") || null;
+  });
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   const [health, setHealth] = useState(null);
@@ -30,6 +35,21 @@ export default function App() {
   const [products, setProducts] = useState([]);
   const [selectedProductId, setSelectedProductId] = useState(null);
   const [negotiationPreFill, setNegotiationPreFill] = useState(null);
+
+  // Sync activeTab & selectedTxnId to localStorage
+  useEffect(() => {
+    if (activeTab) {
+      localStorage.setItem("agentpay_active_tab", activeTab);
+    }
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (selectedTxnId) {
+      localStorage.setItem("agentpay_selected_txn_id", selectedTxnId);
+    } else {
+      localStorage.removeItem("agentpay_selected_txn_id");
+    }
+  }, [selectedTxnId]);
 
   useEffect(() => {
     api
