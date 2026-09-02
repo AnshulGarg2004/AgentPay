@@ -3,30 +3,34 @@ import Card from "../../components/common/Card.jsx";
 import StatCard from "../../components/common/StatCard.jsx";
 import Badge from "../../components/common/Badge.jsx";
 import ApprovalQueue from "../../components/approval/ApprovalQueue.jsx";
+import RevenueChart from "../../components/charts/RevenueChart.jsx";
+import ConversionChart from "../../components/charts/ConversionChart.jsx";
+import { useMerchantAnalytics } from "../../hooks/useMerchantAnalytics.js";
 import { formatRupee } from "../../lib/format.js";
 import { api } from "../../lib/api.js";
 
 export default function MerchantDashboard({ onSelectTransaction }) {
-  const [analytics, setAnalytics] = useState(null);
+  const { analytics, isLoading: isAnalyticsLoading, refetch: refetchAnalytics } = useMerchantAnalytics("all");
   const [transactions, setTransactions] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isTxnsLoading, setIsTxnsLoading] = useState(true);
 
   useEffect(() => {
-    fetchData();
+    fetchTransactions();
   }, []);
 
-  function fetchData() {
-    setIsLoading(true);
-    Promise.all([
-      api.get("/merchants/all/analytics"),
-      api.get("/transactions?limit=10"),
-    ])
-      .then(([analyticsRes, txnsRes]) => {
-        setAnalytics(analyticsRes.data);
+  function fetchTransactions() {
+    setIsTxnsLoading(true);
+    api.get("/transactions?limit=10")
+      .then((txnsRes) => {
         setTransactions(txnsRes.data || []);
       })
       .catch(console.error)
-      .finally(() => setIsLoading(false));
+      .finally(() => setIsTxnsLoading(false));
+  }
+
+  function handleRefresh() {
+    refetchAnalytics();
+    fetchTransactions();
   }
 
   return (
@@ -38,7 +42,7 @@ export default function MerchantDashboard({ onSelectTransaction }) {
           <p className="text-sm text-ink-400 mt-1">Real-time revenue metrics, state distribution, and pending human governance queue.</p>
         </div>
         <button
-          onClick={fetchData}
+          onClick={handleRefresh}
           className="text-xs text-brand-500 font-semibold border border-surface-border bg-surface-alt px-3 py-1.5 rounded-xl hover:bg-surface-border hover:text-white shadow-sm transition-all"
         >
           🔄 Refresh Analytics
@@ -49,7 +53,7 @@ export default function MerchantDashboard({ onSelectTransaction }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <StatCard
           title="Total Gross Revenue"
-          value={formatRupee(analytics?.totalRevenuePaise || 0)}
+          value={formatRupee(analytics?.totalRevenueInPaise || analytics?.totalRevenuePaise || 0)}
           subtitle="Settled & Paid via Escrow"
         />
         <StatCard
@@ -64,7 +68,7 @@ export default function MerchantDashboard({ onSelectTransaction }) {
         />
         <StatCard
           title="Average Order Value"
-          value={formatRupee(analytics?.avgOrderValuePaise || 0)}
+          value={formatRupee(analytics?.avgOrderValueInPaise || analytics?.avgOrderValuePaise || 0)}
           subtitle="Per Successful Checkout"
         />
         <StatCard
@@ -75,39 +79,11 @@ export default function MerchantDashboard({ onSelectTransaction }) {
         />
       </div>
 
-      {/* 2. Middle 2-Column Section */}
+      {/* 2. Middle Row: Revenue Velocity Chart alongside Approval Queue */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Column (6 cols): Transaction State Breakdown */}
-        <div className="lg:col-span-6 space-y-6">
-          <Card className="space-y-4">
-            <div className="flex items-center justify-between border-b border-surface-border pb-3">
-              <h3 className="text-base font-bold text-white">Transaction Lifecycle Distribution</h3>
-              <span className="text-xs text-ink-400">Real-time DB Counts</span>
-            </div>
-
-            {/* State Distribution Progress Bars */}
-            <div className="space-y-3">
-              {Object.entries(analytics?.stateBreakdown || {}).map(([state, count]) => {
-                const pct = analytics?.transactionCount ? Math.round((count / analytics.transactionCount) * 100) : 0;
-                return (
-                  <div key={state} className="space-y-1">
-                    <div className="flex justify-between text-xs font-semibold">
-                      <span className="text-ink-700 flex items-center space-x-2">
-                        <Badge status={state}>{state}</Badge>
-                      </span>
-                      <span className="font-mono text-white">{count} ({pct}%)</span>
-                    </div>
-                    <div className="w-full bg-surface h-2 rounded-full overflow-hidden border border-surface-border">
-                      <div
-                        className="bg-brand-500 h-full rounded-full transition-all duration-500"
-                        style={{ width: `${pct}%` }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </Card>
+        {/* Left Column (6 cols): Revenue Velocity Chart */}
+        <div className="lg:col-span-6">
+          <RevenueChart data={analytics?.revenueByDay || []} />
         </div>
 
         {/* Right Column (6 cols): Approval Queue Widget */}
@@ -116,7 +92,12 @@ export default function MerchantDashboard({ onSelectTransaction }) {
         </div>
       </div>
 
-      {/* 3. Bottom Section: Recent Transactions List */}
+      {/* 3. Conversion Funnel Chart */}
+      <div>
+        <ConversionChart data={analytics?.conversionFunnel || []} />
+      </div>
+
+      {/* 4. Bottom Section: Recent Transactions List */}
       <Card className="space-y-4">
         <div className="flex items-center justify-between border-b border-surface-border pb-3">
           <h3 className="text-base font-bold text-white">Recent Merchant Transactions</h3>

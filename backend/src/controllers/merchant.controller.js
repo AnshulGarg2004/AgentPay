@@ -45,7 +45,7 @@ export async function getMerchantById(req, res, next) {
   }
 }
 
-// GET /api/merchants/:id/analytics  (Real aggregate analytics)
+// GET /api/merchants/:id/analytics  (Real aggregate analytics & funnel)
 export async function getMerchantAnalytics(req, res, next) {
   try {
     const { id } = req.params;
@@ -59,13 +59,31 @@ export async function getMerchantAnalytics(req, res, next) {
     let pendingApprovalCount = 0;
     const stateBreakdown = {};
 
+    // 1. Build 30-day date map for revenueByDay
+    const dateRevenueMap = {};
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateKey = d.toISOString().split("T")[0]; // YYYY-MM-DD
+      dateRevenueMap[dateKey] = 0;
+    }
+
     txns.forEach((t) => {
       stateBreakdown[t.state] = (stateBreakdown[t.state] || 0) + 1;
 
       if (t.state === "PAID" || t.state === "COMPLETED") {
         paidCount++;
-        totalRevenuePaise += t.amountInPaise || 0;
+        const amt = t.amountInPaise || 0;
+        totalRevenuePaise += amt;
+
+        if (t.createdAt) {
+          const dateKey = new Date(t.createdAt).toISOString().split("T")[0];
+          if (dateRevenueMap[dateKey] !== undefined) {
+            dateRevenueMap[dateKey] += amt;
+          }
+        }
       }
+
       if (t.state === "HUMAN_APPROVAL_REQUIRED") {
         pendingApprovalCount++;
       }
@@ -74,15 +92,35 @@ export async function getMerchantAnalytics(req, res, next) {
     const conversionRate = transactionCount > 0 ? Number(((paidCount / transactionCount) * 100).toFixed(1)) : 0;
     const avgOrderValuePaise = paidCount > 0 ? Math.round(totalRevenuePaise / paidCount) : 0;
 
+    // 2. Format revenueByDay
+    const revenueByDay = Object.entries(dateRevenueMap).map(([date, revenueInPaise]) => ({
+      date,
+      revenueInPaise,
+    }));
+
+    // 3. Format conversionFunnel in logical funnel order
+    const FUNNEL_ORDER = ["DISCOVERED", "QUOTED", "NEGOTIATING", "AGREED", "PAID", "COMPLETED"];
+    const extraStates = Object.keys(stateBreakdown).filter((s) => !FUNNEL_ORDER.includes(s));
+    const allFunnelStates = [...FUNNEL_ORDER, ...extraStates];
+
+    const conversionFunnel = allFunnelStates.map((st) => ({
+      state: st,
+      count: stateBreakdown[st] || 0,
+    }));
+
     return res.json({
       merchantId: id,
       totalRevenuePaise,
+      totalRevenueInPaise: totalRevenuePaise,
       transactionCount,
       paidCount,
       conversionRate,
       avgOrderValuePaise,
+      avgOrderValueInPaise: avgOrderValuePaise,
       pendingApprovalCount,
       stateBreakdown,
+      revenueByDay,
+      conversionFunnel,
     });
   } catch (err) {
     next(err);
