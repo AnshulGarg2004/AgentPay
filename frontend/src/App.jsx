@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
 import MerchantOnboarding from "./pages/merchant/MerchantOnboarding.jsx";
 import NegotiationThread from "./components/negotiation/NegotiationThread.jsx";
+import ApprovalQueue from "./components/approval/ApprovalQueue.jsx";
 import Badge from "./components/common/Badge.jsx";
 import Card from "./components/common/Card.jsx";
-import Button from "./components/common/Button.jsx";
 import { api } from "./lib/api.js";
 import { socket } from "./lib/socket.js";
 import { formatRupee } from "./lib/format.js";
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState("negotiation"); // 'onboarding' | 'negotiation'
+  const [activeTab, setActiveTab] = useState("negotiation"); // 'negotiation' | 'onboarding' | 'approvals'
   const [health, setHealth] = useState(null);
   const [socketConnected, setSocketConnected] = useState(false);
 
@@ -64,31 +64,41 @@ export default function App() {
             </div>
             <div>
               <span className="text-lg font-bold text-ink-900 tracking-tight">AgentPay</span>
-              <span className="text-xs text-ink-400 block -mt-1 font-mono">Autonomous AI Agent Commerce & Settlement</span>
+              <span className="text-xs text-ink-400 block -mt-1 font-mono">Autonomous AI Agent Governance & Settlement</span>
             </div>
           </div>
 
           {/* Tab Switcher Navigation */}
-          <div className="flex items-center space-x-2 bg-surface-alt p-1 rounded-xl border border-surface-border">
+          <div className="flex items-center space-x-1 bg-surface-alt p-1 rounded-xl border border-surface-border text-xs">
             <button
               onClick={() => setActiveTab("negotiation")}
-              className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
+              className={`px-3.5 py-2 rounded-lg font-semibold transition-all ${
                 activeTab === "negotiation"
                   ? "bg-white text-ink-900 shadow-sm"
                   : "text-ink-400 hover:text-ink-900"
               }`}
             >
-              🤝 AI Negotiation & Quotes (Phase 3)
+              🤝 AI Negotiation & Quotes
+            </button>
+            <button
+              onClick={() => setActiveTab("approvals")}
+              className={`px-3.5 py-2 rounded-lg font-semibold transition-all ${
+                activeTab === "approvals"
+                  ? "bg-white text-ink-900 shadow-sm"
+                  : "text-ink-400 hover:text-ink-900"
+              }`}
+            >
+              🛡️ Approval Queue (Phase 4)
             </button>
             <button
               onClick={() => setActiveTab("onboarding")}
-              className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
+              className={`px-3.5 py-2 rounded-lg font-semibold transition-all ${
                 activeTab === "onboarding"
                   ? "bg-white text-ink-900 shadow-sm"
                   : "text-ink-400 hover:text-ink-900"
               }`}
             >
-              🏬 Merchant Onboarding & Catalog (Phase 1)
+              🏬 Merchant Onboarding
             </button>
           </div>
 
@@ -114,6 +124,8 @@ export default function App() {
       {/* Main Content Area */}
       <main className="max-w-6xl mx-auto px-6 py-8">
         {activeTab === "onboarding" && <MerchantOnboarding />}
+
+        {activeTab === "approvals" && <ApprovalQueue />}
 
         {activeTab === "negotiation" && (
           <div className="space-y-6 animate-slideIn">
@@ -154,7 +166,12 @@ export default function App() {
 
             {/* Negotiation Thread Component */}
             {selectedProductId ? (
-              <NegotiationThread productId={selectedProductId} />
+              <NegotiationThread
+                productId={selectedProductId}
+                onQuoteGenerated={(quote) => {
+                  console.log("Quote created:", quote);
+                }}
+              />
             ) : (
               <Card>
                 <p className="text-xs text-ink-400">Please seed products first by running `npm run seed` in backend directory.</p>
