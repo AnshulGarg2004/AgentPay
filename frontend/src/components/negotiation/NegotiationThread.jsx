@@ -4,6 +4,7 @@ import Button from "../common/Button.jsx";
 import Badge from "../common/Badge.jsx";
 import OfferBubble from "./OfferBubble.jsx";
 import QuoteCard from "../quote/QuoteCard.jsx";
+import PaymentCheckoutCard from "../payment/PaymentCheckoutCard.jsx";
 import { api } from "../../lib/api.js";
 import { formatRupee } from "../../lib/format.js";
 
@@ -295,7 +296,7 @@ export default function NegotiationThread({ productId, buyerId, onQuoteGenerated
           </Card>
 
           {/* Render Active Quote Card once generated */}
-          {activeQuote && (
+          {activeQuote && !acceptedTxn && (
             <div className="animate-slideIn space-y-4">
               <h3 className="text-sm font-bold uppercase tracking-wide text-ink-400">
                 Generated Binding Quote
@@ -304,45 +305,12 @@ export default function NegotiationThread({ productId, buyerId, onQuoteGenerated
             </div>
           )}
 
-          {/* Render Resulting Transaction Status Banner */}
+          {/* Render Escrow Payment Checkout Card once accepted */}
           {acceptedTxn && (
-            <Card className="animate-slideIn border-2 border-brand-500/40">
-              <div className="flex items-center justify-between border-b border-surface-border pb-3 mb-3">
-                <div className="flex items-center space-x-2">
-                  <span className="text-xs font-mono text-ink-400">TXN #{String(acceptedTxn._id).slice(-8).toUpperCase()}</span>
-                  <Badge status={acceptedTxn.state}>{acceptedTxn.state}</Badge>
-                </div>
-                <span className="text-xs font-mono font-bold text-brand-600">
-                  Risk Level: {acceptedTxn.riskLevel} ({acceptedTxn.riskScore}/100)
-                </span>
-              </div>
-
-              {acceptedTxn.state === "HUMAN_APPROVAL_REQUIRED" ? (
-                <div className="p-4 bg-warning-light border border-warning/40 rounded-xl space-y-2">
-                  <div className="flex items-center space-x-2 text-warning-dark font-bold text-sm">
-                    <span>🛡️ FLAGGED FOR HUMAN GOVERNANCE APPROVAL</span>
-                  </div>
-                  <p className="text-xs text-warning-dark/90">
-                    Policy Engine evaluated quote acceptance and flagged human approval requirement before advancing transaction to payment settlement.
-                  </p>
-                  <div className="text-xs font-medium text-warning-dark bg-white/70 p-2.5 rounded-lg border border-warning/30 space-y-1">
-                    <span className="font-bold block">Policy Engine Trigger Reasons:</span>
-                    {acceptedTxn.approvalReasons?.map((r, i) => (
-                      <div key={i}>• {r}</div>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <div className="p-4 bg-success-light border border-success/30 rounded-xl">
-                  <div className="text-success-dark font-bold text-sm">
-                    ✅ Transaction Policy Evaluated & Approved
-                  </div>
-                  <p className="text-xs text-success-dark/80 mt-1">
-                    State advanced to <strong>PAYMENT_PENDING</strong>. Ready for Razorpay escrow settlement.
-                  </p>
-                </div>
-              )}
-            </Card>
+            <PaymentCheckoutCard
+              transaction={acceptedTxn}
+              onStateUpdated={(updated) => setAcceptedTxn(updated)}
+            />
           )}
         </div>
       )}
