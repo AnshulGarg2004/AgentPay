@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
+import LandingPage from "./pages/LandingPage.jsx";
 import MerchantOnboarding from "./pages/merchant/MerchantOnboarding.jsx";
+import MerchantDashboard from "./pages/merchant/MerchantDashboard.jsx";
+import BuyerDashboard from "./pages/buyer/BuyerDashboard.jsx";
+import TransactionExplorer from "./pages/transaction/TransactionExplorer.jsx";
+import TransactionDetailPage from "./pages/transaction/TransactionDetailPage.jsx";
 import NegotiationThread from "./components/negotiation/NegotiationThread.jsx";
 import ApprovalQueue from "./components/approval/ApprovalQueue.jsx";
 import LiveActivityFeed from "./components/audit/LiveActivityFeed.jsx";
@@ -11,7 +16,9 @@ import { socket } from "./lib/socket.js";
 import { formatRupee } from "./lib/format.js";
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState("negotiation"); // 'negotiation' | 'approvals' | 'audit' | 'onboarding'
+  const [activeTab, setActiveTab] = useState("home"); // 'home' | 'negotiation' | 'approvals' | 'explorer' | 'merchant-dashboard' | 'buyer-dashboard' | 'audit' | 'onboarding' | 'detail'
+  const [selectedTxnId, setSelectedTxnId] = useState(null);
+
   const [health, setHealth] = useState(null);
   const [socketConnected, setSocketConnected] = useState(false);
 
@@ -55,89 +62,143 @@ export default function App() {
     };
   }, []);
 
+  function handleSelectTransaction(txnId) {
+    setSelectedTxnId(txnId);
+    setActiveTab("detail");
+  }
+
   return (
-    <div className="min-h-screen bg-surface-alt font-sans text-ink-700">
+    <div className="min-h-screen bg-surface-alt font-sans text-ink-700 flex flex-col">
       {/* Top Bar Navigation */}
-      <header className="bg-white border-b border-surface-border shadow-card px-8 py-4 sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center space-x-3">
+      <header className="bg-white border-b border-surface-border shadow-card px-6 py-3.5 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setActiveTab("home")}>
             <div className="w-9 h-9 rounded-xl bg-brand-500 text-white font-bold flex items-center justify-center text-xl shadow-sm">
               A
             </div>
             <div>
               <span className="text-lg font-bold text-ink-900 tracking-tight">AgentPay</span>
-              <span className="text-xs text-ink-400 block -mt-1 font-mono">Autonomous AI Agent Governance & Settlement</span>
+              <span className="text-xs text-ink-400 block -mt-1 font-mono">Autonomous AI Agent Governance & Escrow</span>
             </div>
           </div>
 
-          {/* Tab Switcher Navigation */}
-          <div className="flex items-center space-x-1 bg-surface-alt p-1 rounded-xl border border-surface-border text-xs">
+          {/* Navigation Bar */}
+          <div className="flex items-center flex-wrap gap-1 bg-surface-alt p-1 rounded-xl border border-surface-border text-xs">
             <button
-              onClick={() => setActiveTab("negotiation")}
-              className={`px-3.5 py-2 rounded-lg font-semibold transition-all ${
-                activeTab === "negotiation"
-                  ? "bg-white text-ink-900 shadow-sm"
-                  : "text-ink-400 hover:text-ink-900"
+              onClick={() => setActiveTab("home")}
+              className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${
+                activeTab === "home" ? "bg-white text-ink-900 shadow-sm" : "text-ink-400 hover:text-ink-900"
               }`}
             >
-              🤝 AI Negotiation & Escrow
+              🏠 Home
+            </button>
+            <button
+              onClick={() => setActiveTab("negotiation")}
+              className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${
+                activeTab === "negotiation" ? "bg-white text-ink-900 shadow-sm" : "text-ink-400 hover:text-ink-900"
+              }`}
+            >
+              🤝 AI Studio
             </button>
             <button
               onClick={() => setActiveTab("approvals")}
-              className={`px-3.5 py-2 rounded-lg font-semibold transition-all ${
-                activeTab === "approvals"
-                  ? "bg-white text-ink-900 shadow-sm"
-                  : "text-ink-400 hover:text-ink-900"
+              className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${
+                activeTab === "approvals" ? "bg-white text-ink-900 shadow-sm" : "text-ink-400 hover:text-ink-900"
               }`}
             >
-              🛡️ Approval Queue (Phase 4)
+              🛡️ Approval Queue
+            </button>
+            <button
+              onClick={() => setActiveTab("explorer")}
+              className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${
+                activeTab === "explorer" || activeTab === "detail" ? "bg-white text-ink-900 shadow-sm" : "text-ink-400 hover:text-ink-900"
+              }`}
+            >
+              🔍 Explorer
+            </button>
+            <button
+              onClick={() => setActiveTab("merchant-dashboard")}
+              className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${
+                activeTab === "merchant-dashboard" ? "bg-white text-ink-900 shadow-sm" : "text-ink-400 hover:text-ink-900"
+              }`}
+            >
+              📊 Merchant Ops
+            </button>
+            <button
+              onClick={() => setActiveTab("buyer-dashboard")}
+              className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${
+                activeTab === "buyer-dashboard" ? "bg-white text-ink-900 shadow-sm" : "text-ink-400 hover:text-ink-900"
+              }`}
+            >
+              💼 Buyer Portal
             </button>
             <button
               onClick={() => setActiveTab("audit")}
-              className={`px-3.5 py-2 rounded-lg font-semibold transition-all ${
-                activeTab === "audit"
-                  ? "bg-white text-ink-900 shadow-sm"
-                  : "text-ink-400 hover:text-ink-900"
+              className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${
+                activeTab === "audit" ? "bg-white text-ink-900 shadow-sm" : "text-ink-400 hover:text-ink-900"
               }`}
             >
-              📜 Live Audit Stream (Phase 6)
+              📜 Live Audit
             </button>
             <button
               onClick={() => setActiveTab("onboarding")}
-              className={`px-3.5 py-2 rounded-lg font-semibold transition-all ${
-                activeTab === "onboarding"
-                  ? "bg-white text-ink-900 shadow-sm"
-                  : "text-ink-400 hover:text-ink-900"
+              className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${
+                activeTab === "onboarding" ? "bg-white text-ink-900 shadow-sm" : "text-ink-400 hover:text-ink-900"
               }`}
             >
-              🏬 Merchant Onboarding
+              🏬 Onboarding
             </button>
           </div>
 
-          {/* System Health Indicators */}
-          <div className="hidden lg:flex items-center space-x-4">
-            <div className="flex items-center space-x-2 text-xs">
-              <span className="text-ink-400">Backend API:</span>
+          {/* Health Badges */}
+          <div className="hidden xl:flex items-center space-x-3">
+            <div className="flex items-center space-x-1.5 text-[11px]">
+              <span className="text-ink-400">API:</span>
               <Badge status={health?.status === "ok" ? "PAID" : "FAILED"}>
-                {health?.status === "ok" ? "GET /api/health OK" : "API Offline"}
+                {health?.status === "ok" ? "OK" : "Offline"}
               </Badge>
             </div>
-
-            <div className="flex items-center space-x-2 text-xs">
-              <span className="text-ink-400">Socket.IO:</span>
+            <div className="flex items-center space-x-1.5 text-[11px]">
+              <span className="text-ink-400">Socket:</span>
               <Badge status={socketConnected ? "PAID" : "PENDING"}>
-                {socketConnected ? "Live Connected" : "Connecting..."}
+                {socketConnected ? "Connected" : "Connecting"}
               </Badge>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Main Content Area */}
-      <main className="max-w-6xl mx-auto px-6 py-8">
+      {/* Main Container */}
+      <main className="max-w-7xl mx-auto px-6 py-8 flex-1 w-full">
+        {activeTab === "home" && <LandingPage onNavigate={(tab) => setActiveTab(tab)} />}
+
         {activeTab === "onboarding" && <MerchantOnboarding />}
 
         {activeTab === "approvals" && <ApprovalQueue />}
+
+        {activeTab === "merchant-dashboard" && (
+          <MerchantDashboard onSelectTransaction={handleSelectTransaction} />
+        )}
+
+        {activeTab === "buyer-dashboard" && (
+          <BuyerDashboard onSelectTransaction={handleSelectTransaction} />
+        )}
+
+        {activeTab === "explorer" && (
+          <TransactionExplorer onSelectTransaction={handleSelectTransaction} />
+        )}
+
+        {activeTab === "detail" && selectedTxnId && (
+          <div className="space-y-4">
+            <button
+              onClick={() => setActiveTab("explorer")}
+              className="text-xs font-semibold text-brand-600 hover:text-brand-700 flex items-center space-x-1"
+            >
+              <span>← Back to Transaction Explorer</span>
+            </button>
+            <TransactionDetailPage transactionId={selectedTxnId} />
+          </div>
+        )}
 
         {activeTab === "audit" && (
           <div className="space-y-6 animate-slideIn">
@@ -212,6 +273,17 @@ export default function App() {
           </div>
         )}
       </main>
+
+      {/* Footer */}
+      <footer className="bg-white border-t border-surface-border py-6 px-8 text-center text-xs text-ink-400">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center space-x-2 font-mono">
+            <span className="w-2 h-2 rounded-full bg-brand-500" />
+            <span>AgentPay Protocol • Non-LLM Governance & Escrow Settlement</span>
+          </div>
+          <div>Built with React, Vite, Tailwind CSS, Express, MongoDB & Socket.IO</div>
+        </div>
+      </footer>
     </div>
   );
 }

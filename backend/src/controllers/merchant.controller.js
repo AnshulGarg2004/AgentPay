@@ -1,5 +1,6 @@
 import Merchant from "../models/Merchant.model.js";
 import Product from "../models/Product.model.js";
+import Transaction from "../models/Transaction.model.js";
 
 // POST /api/merchants
 export async function createMerchant(req, res, next) {
@@ -39,6 +40,50 @@ export async function getMerchantById(req, res, next) {
       return res.status(404).json({ error: "Merchant not found" });
     }
     return res.json(merchant);
+  } catch (err) {
+    next(err);
+  }
+}
+
+// GET /api/merchants/:id/analytics  (Real aggregate analytics)
+export async function getMerchantAnalytics(req, res, next) {
+  try {
+    const { id } = req.params;
+    const query = id && id !== "all" ? { merchantId: id } : {};
+
+    const txns = await Transaction.find(query);
+
+    const transactionCount = txns.length;
+    let totalRevenuePaise = 0;
+    let paidCount = 0;
+    let pendingApprovalCount = 0;
+    const stateBreakdown = {};
+
+    txns.forEach((t) => {
+      stateBreakdown[t.state] = (stateBreakdown[t.state] || 0) + 1;
+
+      if (t.state === "PAID" || t.state === "COMPLETED") {
+        paidCount++;
+        totalRevenuePaise += t.amountInPaise || 0;
+      }
+      if (t.state === "HUMAN_APPROVAL_REQUIRED") {
+        pendingApprovalCount++;
+      }
+    });
+
+    const conversionRate = transactionCount > 0 ? Number(((paidCount / transactionCount) * 100).toFixed(1)) : 0;
+    const avgOrderValuePaise = paidCount > 0 ? Math.round(totalRevenuePaise / paidCount) : 0;
+
+    return res.json({
+      merchantId: id,
+      totalRevenuePaise,
+      transactionCount,
+      paidCount,
+      conversionRate,
+      avgOrderValuePaise,
+      pendingApprovalCount,
+      stateBreakdown,
+    });
   } catch (err) {
     next(err);
   }
@@ -105,6 +150,7 @@ export const merchantController = {
   createMerchant,
   getMerchants,
   getMerchantById,
+  getMerchantAnalytics,
   addMerchantProducts,
   getMerchantProducts,
 };

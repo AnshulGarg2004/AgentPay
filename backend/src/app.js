@@ -8,6 +8,7 @@ import quoteRoutes from "./routes/quote.routes.js";
 import approvalRoutes from "./routes/approval.routes.js";
 import paymentRoutes from "./routes/payment.routes.js";
 import webhookRoutes from "./routes/webhook.routes.js";
+import transactionRoutes from "./routes/transaction.routes.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
 const app = express();
@@ -31,6 +32,7 @@ app.use("/api/quotes", quoteRoutes);
 app.use("/api/approvals", approvalRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/webhooks", webhookRoutes);
+app.use("/api/transactions", transactionRoutes);
 
 // Error Handler
 app.use(errorHandler);
