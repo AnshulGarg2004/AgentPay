@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { @apply font-sans text-ink-700; }
+  h1, h2, h3 { @apply text-ink-900 font-semibold; }
+}
