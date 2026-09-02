@@ -1,6 +1,7 @@
 import Transaction from "../models/Transaction.model.js";
 import AuditLog from "../models/AuditLog.model.js";
 import { logAudit } from "../services/audit.service.js";
+import { transitionTo } from "../services/transactionState.service.js";
 
 // GET /api/approvals/pending
 export async function getPendingApprovals(req, res, next) {
@@ -46,28 +47,14 @@ export async function approveTransaction(req, res, next) {
       return res.status(400).json({ error: `Transaction is in state '${txn.state}', cannot approve.` });
     }
 
-    txn.state = "PAYMENT_PENDING";
     txn.approvedBy = approvedBy || "Human Operations Manager";
     txn.approvedAt = new Date();
-    await txn.save();
 
-    await logAudit({
-      transactionId: txn._id,
-      action: "HUMAN_APPROVE_TRANSACTION",
-      reason: `Flagged policy violation overridden and approved by ${txn.approvedBy}`,
-      actor: "HUMAN",
-      result: "PAYMENT_PENDING",
-      metadata: { approvedBy: txn.approvedBy },
+    await transitionTo(txn, "PAYMENT_PENDING", {
       io,
+      actor: "HUMAN",
+      reason: `Flagged policy violation overridden and approved by ${txn.approvedBy}`,
     });
-
-    if (io) {
-      io.emit("transaction.state_changed", {
-        transactionId: txn._id,
-        state: txn.state,
-        approvedBy: txn.approvedBy,
-      });
-    }
 
     return res.json({
       message: "Transaction approved successfully. Advanced to PAYMENT_PENDING.",
@@ -94,30 +81,15 @@ export async function rejectTransaction(req, res, next) {
       return res.status(400).json({ error: `Transaction is in state '${txn.state}', cannot reject.` });
     }
 
-    txn.state = "REJECTED";
     txn.rejectedBy = rejectedBy || "Human Operations Manager";
     txn.rejectedAt = new Date();
     txn.rejectionReason = reason || "Rejected by human operations manager.";
-    await txn.save();
 
-    await logAudit({
-      transactionId: txn._id,
-      action: "HUMAN_REJECT_TRANSACTION",
-      reason: txn.rejectionReason,
-      actor: "HUMAN",
-      result: "REJECTED",
-      metadata: { rejectedBy: txn.rejectedBy },
+    await transitionTo(txn, "POLICY_REJECTED", {
       io,
+      actor: "HUMAN",
+      reason: txn.rejectionReason,
     });
-
-    if (io) {
-      io.emit("transaction.state_changed", {
-        transactionId: txn._id,
-        state: txn.state,
-        rejectedBy: txn.rejectedBy,
-        rejectionReason: txn.rejectionReason,
-      });
-    }
 
     return res.json({
       message: "Transaction rejected by human reviewer.",

@@ -14,6 +14,18 @@ async function start() {
   setupLiveActivityGateway(io);
   app.set("io", io); // access via req.app.get("io") in controllers
 
+  // Handle server errors cleanly BEFORE calling listen
+  server.on("error", (err) => {
+    if (err.code === "EADDRINUSE") {
+      console.error(`\n❌ [AgentPay Server] Port ${PORT} is currently occupied by another process.`);
+      console.error(`💡 Solution: Run 'taskkill /F /IM node.exe' (Windows) or 'npx kill-port ${PORT}' to free port ${PORT}.\n`);
+      process.exit(1);
+    } else {
+      console.error("Server error:", err);
+      process.exit(1);
+    }
+  });
+
   server.listen(PORT, () => {
     console.log(`🚀 AgentPay backend running on http://localhost:${PORT}`);
   });

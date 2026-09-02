@@ -1,7 +1,7 @@
 import Transaction from "../models/Transaction.model.js";
 import { createOrder } from "../services/razorpay.service.js";
 import { acquireIdempotencyKey, completeIdempotencyKey } from "../services/idempotency.service.js";
-import { transitionTransaction } from "../stateMachine/transitions.js";
+
 import { logAudit } from "../services/audit.service.js";
 
 // POST /api/orders

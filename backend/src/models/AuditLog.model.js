@@ -9,7 +9,7 @@ const AuditLogSchema = new Schema(
     reason: { type: String, required: true },
     actor: {
       type: String,
-      enum: ["BUYER_AGENT", "MERCHANT_AGENT", "POLICY_ENGINE", "HUMAN"],
+      enum: ["BUYER_AGENT", "MERCHANT_AGENT", "POLICY_ENGINE", "HUMAN", "SYSTEM"],
       required: true,
     },
     result: { type: String, default: "SUCCESS" },

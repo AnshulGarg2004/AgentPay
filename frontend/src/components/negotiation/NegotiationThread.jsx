@@ -8,33 +8,51 @@ import PaymentCheckoutCard from "../payment/PaymentCheckoutCard.jsx";
 import { api } from "../../lib/api.js";
 import { formatRupee } from "../../lib/format.js";
 
-export default function NegotiationThread({ productId, buyerId, onQuoteGenerated }) {
+export default function NegotiationThread({
+  productId,
+  buyerId,
+  initialQuantity,
+  initialTargetPriceInPaise,
+  initialDeliveryDays,
+  initialNotes,
+  onQuoteGenerated,
+}) {
   const [product, setProduct] = useState(null);
   const [negotiation, setNegotiation] = useState(null);
 
   // Counter offer input state
   const [targetPriceRupees, setTargetPriceRupees] = useState("");
-  const [quantity, setQuantity] = useState(1);
-  const [deliveryDays, setDeliveryDays] = useState(3);
-  const [notes, setNotes] = useState("");
+  const [quantity, setQuantity] = useState(initialQuantity || 1);
+  const [deliveryDays, setDeliveryDays] = useState(initialDeliveryDays || 3);
+  const [notes, setNotes] = useState(initialNotes || "");
 
   const [isLoading, setIsLoading] = useState(false);
   const [activeQuote, setActiveQuote] = useState(null);
   const [acceptedTxn, setAcceptedTxn] = useState(null);
 
-  // Fetch product details on mount
+  // Fetch product details on mount or productId change
   useEffect(() => {
     if (productId) {
+      setNegotiation(null);
+      setActiveQuote(null);
+      setAcceptedTxn(null);
+
       api
         .get(`/products/${productId}`)
         .then((res) => {
           setProduct(res.data);
-          setTargetPriceRupees(res.data.priceInPaise / 100);
-          setDeliveryDays(res.data.deliveryMinDays || 3);
+          if (initialTargetPriceInPaise) {
+            setTargetPriceRupees(initialTargetPriceInPaise / 100);
+          } else {
+            setTargetPriceRupees(res.data.priceInPaise / 100);
+          }
+          if (initialQuantity) setQuantity(initialQuantity);
+          if (initialDeliveryDays) setDeliveryDays(initialDeliveryDays);
+          if (initialNotes) setNotes(initialNotes);
         })
         .catch(console.error);
     }
-  }, [productId]);
+  }, [productId, initialQuantity, initialTargetPriceInPaise, initialDeliveryDays, initialNotes]);
 
   async function handleStartNegotiation() {
     setIsLoading(true);

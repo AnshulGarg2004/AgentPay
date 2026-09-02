@@ -3,6 +3,7 @@ import LandingPage from "./pages/LandingPage.jsx";
 import MerchantOnboarding from "./pages/merchant/MerchantOnboarding.jsx";
 import MerchantDashboard from "./pages/merchant/MerchantDashboard.jsx";
 import BuyerDashboard from "./pages/buyer/BuyerDashboard.jsx";
+import BuyerConsole from "./pages/buyer/BuyerConsole.jsx";
 import TransactionExplorer from "./pages/transaction/TransactionExplorer.jsx";
 import TransactionDetailPage from "./pages/transaction/TransactionDetailPage.jsx";
 import NegotiationThread from "./components/negotiation/NegotiationThread.jsx";
@@ -16,7 +17,7 @@ import { socket } from "./lib/socket.js";
 import { formatRupee } from "./lib/format.js";
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState("home"); // 'home' | 'negotiation' | 'approvals' | 'explorer' | 'merchant-dashboard' | 'buyer-dashboard' | 'audit' | 'onboarding' | 'detail'
+  const [activeTab, setActiveTab] = useState("buyer-console"); // default to buyer-console or home
   const [selectedTxnId, setSelectedTxnId] = useState(null);
 
   const [health, setHealth] = useState(null);
@@ -25,6 +26,7 @@ export default function App() {
   // Products available for demo negotiation
   const [products, setProducts] = useState([]);
   const [selectedProductId, setSelectedProductId] = useState(null);
+  const [negotiationPreFill, setNegotiationPreFill] = useState(null);
 
   useEffect(() => {
     api
@@ -35,9 +37,10 @@ export default function App() {
     api
       .get("/products/search")
       .then((res) => {
-        setProducts(res.data || []);
-        if (res.data && res.data.length > 0) {
-          setSelectedProductId(res.data[0]._id);
+        const list = Array.isArray(res.data) ? res.data : res.data.products || [];
+        setProducts(list);
+        if (list.length > 0) {
+          setSelectedProductId(list[0]._id);
         }
       })
       .catch(console.error);
@@ -67,6 +70,14 @@ export default function App() {
     setActiveTab("detail");
   }
 
+  function handleInitiateNegotiationFromConsole(params) {
+    if (params.productId) {
+      setSelectedProductId(params.productId);
+      setNegotiationPreFill(params);
+    }
+    setActiveTab("negotiation");
+  }
+
   return (
     <div className="min-h-screen bg-surface-alt font-sans text-ink-700 flex flex-col">
       {/* Top Bar Navigation */}
@@ -91,6 +102,14 @@ export default function App() {
               }`}
             >
               🏠 Home
+            </button>
+            <button
+              onClick={() => setActiveTab("buyer-console")}
+              className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${
+                activeTab === "buyer-console" ? "bg-white text-ink-900 shadow-sm" : "text-ink-400 hover:text-ink-900"
+              }`}
+            >
+              💬 Buyer Console
             </button>
             <button
               onClick={() => setActiveTab("negotiation")}
@@ -172,6 +191,10 @@ export default function App() {
       <main className="max-w-7xl mx-auto px-6 py-8 flex-1 w-full">
         {activeTab === "home" && <LandingPage onNavigate={(tab) => setActiveTab(tab)} />}
 
+        {activeTab === "buyer-console" && (
+          <BuyerConsole onInitiateNegotiation={handleInitiateNegotiationFromConsole} />
+        )}
+
         {activeTab === "onboarding" && <MerchantOnboarding />}
 
         {activeTab === "approvals" && <ApprovalQueue />}
@@ -240,7 +263,10 @@ export default function App() {
                   return (
                     <button
                       key={p._id}
-                      onClick={() => setSelectedProductId(p._id)}
+                      onClick={() => {
+                        setSelectedProductId(p._id);
+                        setNegotiationPreFill(null);
+                      }}
                       className={`px-3 py-2 rounded-xl text-xs font-medium border text-left transition-all ${
                         isSelected
                           ? "bg-brand-50 border-brand-500 text-brand-700 ring-2 ring-brand-500/20"
@@ -261,6 +287,10 @@ export default function App() {
             {selectedProductId ? (
               <NegotiationThread
                 productId={selectedProductId}
+                initialQuantity={negotiationPreFill?.quantity}
+                initialTargetPriceInPaise={negotiationPreFill?.targetPriceInPaise}
+                initialDeliveryDays={negotiationPreFill?.requestedDeliveryDays}
+                initialNotes={negotiationPreFill?.notes}
                 onQuoteGenerated={(quote) => {
                   console.log("Quote created:", quote);
                 }}

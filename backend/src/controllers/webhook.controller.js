@@ -1,7 +1,8 @@
 import WebhookEvent from "../models/WebhookEvent.model.js";
 import Transaction from "../models/Transaction.model.js";
 import { verifyWebhookSignature } from "../services/razorpay.service.js";
-import { transitionTransaction } from "../stateMachine/transitions.js";
+import { processWebhookEvent } from "../services/webhookProcessor.service.js";
+import { transitionTo } from "../services/transactionState.service.js";
 import { logAudit } from "../services/audit.service.js";
 
 // POST /api/webhooks/razorpay
@@ -12,19 +13,19 @@ export async function handleRazorpayWebhook(req, res, next) {
     const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
     const io = req.app.get("io");
 
-    // Optional signature verification check
+    // 1. Verify Razorpay webhook signature if secret is configured
     if (signature && process.env.RAZORPAY_WEBHOOK_SECRET) {
       const isValid = verifyWebhookSignature(rawBody, signature, process.env.RAZORPAY_WEBHOOK_SECRET);
       if (!isValid) {
+        console.error("⚠️ Invalid Razorpay webhook signature header");
         return res.status(400).json({ error: "Invalid Razorpay webhook signature" });
       }
     }
 
-    const eventId = body.event_id || body.payload?.payment?.entity?.id || `evt_${Date.now()}`;
-    const eventType = body.event || "payment.captured";
-    const paymentEntity = body.payload?.payment?.entity || {};
+    const eventId = body.event_id || body.payload?.payment?.entity?.id || `evt_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const eventType = body.event || "unknown";
 
-    // 1. Dedupe webhook on unique eventId
+    // 2. Dedupe on WebhookEvent.eventId (insert-or-skip)
     try {
       await WebhookEvent.create({
         eventId,
@@ -33,103 +34,30 @@ export async function handleRazorpayWebhook(req, res, next) {
       });
     } catch (err) {
       if (err.code === 11000 || err.message?.includes("E11000")) {
-        await logAudit({
-          action: "WEBHOOK_DEDUPE_BLOCK",
-          reason: `Duplicate Razorpay webhook event '${eventId}' ignored`,
-          actor: "POLICY_ENGINE",
-          result: "IGNORED_DUPLICATE",
-          metadata: { eventId, type: eventType },
-          io,
-        });
+        console.log(`ℹ️ Duplicate webhook event '${eventId}' received. Skipping duplicate processing.`);
         return res.status(200).json({ status: "ignored_duplicate", eventId });
       }
-      throw err;
+      // Log DB error but still return 200 to prevent Razorpay infinite retries
+      console.error("WebhookEvent dedupe insert error:", err.message);
     }
 
-    // 2. Process Event Types
-    const orderId = paymentEntity.order_id;
-    const txnId = paymentEntity.notes?.transactionId || body.transactionId;
+    // 3. Process event via webhookProcessorService
+    const result = await processWebhookEvent(body, { io });
 
-    let txn = null;
-    if (orderId) {
-      txn = await Transaction.findOne({ razorpayOrderId: orderId });
-    }
-    if (!txn && txnId) {
-      txn = await Transaction.findById(txnId);
-    }
-
-    if (!txn) {
-      return res.status(200).json({ status: "transaction_not_found" });
-    }
-
-    if (eventType === "payment.captured" || eventType === "payment.authorized") {
-      txn.razorpayPaymentId = paymentEntity.id || txn.razorpayPaymentId || `pay_${Date.now()}`;
-
-      // Transition to PAID
-      if (txn.state !== "PAID") {
-        transitionTransaction(txn, "PAID");
-        await txn.save();
-      }
-
-      await logAudit({
-        transactionId: txn._id,
-        action: "WEBHOOK_PAYMENT_CAPTURED",
-        reason: `Verified Razorpay payment.captured webhook for payment ID '${txn.razorpayPaymentId}'. Escrow funds settled.`,
-        actor: "POLICY_ENGINE",
-        result: "PAID",
-        metadata: { eventId, razorpayPaymentId: txn.razorpayPaymentId },
-        io,
-      });
-
-      if (io) {
-        io.emit("payment.event", {
-          transactionId: txn._id,
-          event: "payment.captured",
-          razorpayPaymentId: txn.razorpayPaymentId,
-        });
-        io.emit("transaction.state_changed", {
-          transactionId: txn._id,
-          state: "PAID",
-          razorpayPaymentId: txn.razorpayPaymentId,
-        });
-      }
-
-      return res.json({ status: "processed", eventType, transactionState: txn.state });
-    }
-
-    if (eventType === "payment.failed") {
-      if (txn.state !== "PAID") {
-        transitionTransaction(txn, "PAYMENT_FAILED");
-        await txn.save();
-      }
-
-      await logAudit({
-        transactionId: txn._id,
-        action: "WEBHOOK_PAYMENT_FAILED",
-        reason: "Received Razorpay webhook payment.failed notification.",
-        actor: "POLICY_ENGINE",
-        result: "PAYMENT_FAILED",
-        metadata: { eventId },
-        io,
-      });
-
-      if (io) {
-        io.emit("transaction.state_changed", {
-          transactionId: txn._id,
-          state: "PAYMENT_FAILED",
-        });
-      }
-
-      return res.json({ status: "processed", eventType, transactionState: txn.state });
-    }
-
-    return res.json({ status: "received", eventType });
+    // Always return 200 OK to Razorpay
+    return res.status(200).json({
+      status: "received",
+      eventId,
+      result,
+    });
   } catch (err) {
-    next(err);
+    console.error("Unhandled webhook controller error:", err.message);
+    // Always return 200 OK to Razorpay to avoid infinite webhook retry loops
+    return res.status(200).json({ status: "error_logged", error: err.message });
   }
 }
 
-// POST /api/webhooks/simulate-captured  (Dev / Hero Demo Recovery Trigger)
+// POST /api/webhooks/simulate-captured (Dev / Hero Demo Recovery Trigger)
 export async function simulateCapturedWebhook(req, res, next) {
   try {
     const { transactionId } = req.body;
@@ -144,31 +72,19 @@ export async function simulateCapturedWebhook(req, res, next) {
       return res.status(404).json({ error: "Transaction not found" });
     }
 
-    if (txn.state !== "PAID") {
-      transitionTransaction(txn, "PAID");
-      txn.razorpayPaymentId = txn.razorpayPaymentId || `pay_simulated_${Date.now()}`;
-      await txn.save();
-    }
+    txn.razorpayPaymentId = txn.razorpayPaymentId || `pay_simulated_${Date.now()}`;
+    await txn.save();
 
-    await logAudit({
-      transactionId: txn._id,
-      action: "RECOVER_PAYMENT_VIA_WEBHOOK",
-      reason: `Hero Demo Recovery: Verified simulated Razorpay webhook payment.captured event. Advanced locked PAYMENT_VERIFICATION state to PAID.`,
-      actor: "POLICY_ENGINE",
-      result: "PAID",
-      metadata: { simulated: true, razorpayPaymentId: txn.razorpayPaymentId },
+    await transitionTo(txn._id, "PAID", {
       io,
+      actor: "POLICY_ENGINE",
+      reason: "Hero Demo Recovery: Verified simulated Razorpay webhook payment.captured event.",
     });
 
     if (io) {
       io.emit("payment.event", {
         transactionId: txn._id,
         event: "payment.captured",
-        simulated: true,
-      });
-      io.emit("transaction.state_changed", {
-        transactionId: txn._id,
-        state: "PAID",
         simulated: true,
       });
     }

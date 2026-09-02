@@ -1,10 +1,38 @@
 import Product from "../models/Product.model.js";
+import { parseBuyerIntent } from "../services/ai/buyerIntentAgent.js";
+import { searchAndRankCatalog } from "../services/ai/merchantAgent.js";
 
-// GET /api/products/search
+// GET /api/products/search OR POST /api/products/search
 export async function searchProducts(req, res, next) {
   try {
-    const { query, category, minPrice, maxPrice, merchantId } = req.query;
+    const promptText = req.query.q || req.query.prompt || req.body?.prompt || req.body?.q;
 
+    // 1. Natural-Language Search Pipeline if prompt is provided
+    if (promptText && typeof promptText === "string" && promptText.trim().length > 0) {
+      const prompt = promptText.trim();
+
+      // Step 1: Buyer Intent Agent parses natural language into validated structured intent
+      const structuredIntent = await parseBuyerIntent(prompt);
+
+      // Step 2: Merchant Agent searches real MongoDB collection and ranks results with DB explanations
+      const rankedMatches = await searchAndRankCatalog(structuredIntent);
+
+      return res.json({
+        prompt,
+        intent: structuredIntent,
+        count: rankedMatches.length,
+        matches: rankedMatches,
+        // Legacy list format for simple array consumers
+        products: rankedMatches.map((m) => ({
+          ...m.product,
+          matchExplanation: m.explanation,
+          matchScore: m.score,
+        })),
+      });
+    }
+
+    // 2. Standard Filter Query Fallback
+    const { query, category, minPrice, maxPrice, merchantId } = req.query;
     const filter = { aiPurchasable: true };
 
     if (merchantId) {
@@ -29,7 +57,10 @@ export async function searchProducts(req, res, next) {
       if (maxPrice) filter.priceInPaise.$lte = Math.round(Number(maxPrice) * 100);
     }
 
-    const products = await Product.find(filter).populate("merchantId", "name verified constitution").sort({ priceInPaise: 1 });
+    const products = await Product.find(filter)
+      .populate("merchantId", "name verified constitution")
+      .sort({ priceInPaise: 1 })
+      .lean();
 
     return res.json(products);
   } catch (err) {

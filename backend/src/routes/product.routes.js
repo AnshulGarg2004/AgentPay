@@ -4,6 +4,7 @@ import { searchProducts, getProductById } from "../controllers/product.controlle
 const router = Router();
 
 router.get("/search", searchProducts);
+router.post("/search", searchProducts);
 router.get("/:id", getProductById);
 
 export default router;

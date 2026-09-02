@@ -1,1 +1,5 @@
-export default function BuyerChatWindow() { return <div>BuyerChatWindow</div>; }
+import BuyerConsole from "../../pages/buyer/BuyerConsole.jsx";
+
+export default function BuyerChatWindow(props) {
+  return <BuyerConsole {...props} />;
+}

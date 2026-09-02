@@ -16,10 +16,16 @@ export async function generateMerchantNegotiationResponse({
   const proposedQty = buyerOffer.quantity || 1;
   const proposedDelivery = buyerOffer.deliveryDays || product.deliveryMinDays || 3;
 
+  // Candidate models to try in order
+  const modelCandidates = Array.from(
+    new Set([GROQ_MODEL, "openai/gpt-oss-120b", "qwen/qwen3.6-27b", "groq/compound"])
+  );
+
   // 1. Check Groq AI if key is configured
   if (process.env.GROQ_API_KEY && process.env.GROQ_API_KEY !== "xxxxx") {
-    try {
-      const prompt = `
+    for (const modelCandidate of modelCandidates) {
+      try {
+        const prompt = `
 You are an autonomous Merchant Negotiation Agent representing "${merchant?.name || 'Merchant'}".
 Product: "${product.name}"
 Standard List Price: ₹${(basePrice / 100).toLocaleString('en-IN')} (${basePrice} paise)
@@ -49,28 +55,41 @@ Return strictly valid JSON only:
 }
 `;
 
-      const completion = await groq.chat.completions.create({
-        model: GROQ_MODEL,
-        messages: [
-          { role: "system", content: "You are a professional B2B commerce negotiation engine. Output valid JSON only." },
-          { role: "user", content: prompt }
-        ],
-        response_format: { type: "json_object" },
-        temperature: 0.2,
-      });
+        const completion = await groq.chat.completions.create({
+          model: modelCandidate,
+          messages: [
+            { role: "system", content: "You are a professional B2B commerce negotiation engine. Output valid JSON only." },
+            { role: "user", content: prompt }
+          ],
+          response_format: { type: "json_object" },
+          temperature: 0.2,
+        });
 
-      const parsed = JSON.parse(completion.choices[0].message.content);
-      if (parsed.action && parsed.counterUnitPriceInPaise) {
-        return {
-          action: parsed.action,
-          unitPriceInPaise: Math.max(parsed.counterUnitPriceInPaise, floorPrice),
-          quantity: parsed.counterQuantity || proposedQty,
-          deliveryDays: parsed.counterDeliveryDays || proposedDelivery,
-          reasoning: parsed.reasoning || "Groq AI negotiation response",
-        };
+        const content = completion.choices[0]?.message?.content || "";
+        // Clean JSON from potential markdown code blocks if any
+        const cleanedJson = content.replace(/```json/g, "").replace(/```/g, "").trim();
+        const parsed = JSON.parse(cleanedJson);
+
+        if (parsed.action && (parsed.counterUnitPriceInPaise || parsed.action === "ACCEPT")) {
+          const finalPrice = parsed.counterUnitPriceInPaise
+            ? Math.max(parsed.counterUnitPriceInPaise, floorPrice)
+            : proposedPrice;
+
+          return {
+            action: parsed.action,
+            unitPriceInPaise: finalPrice,
+            quantity: parsed.counterQuantity || proposedQty,
+            deliveryDays: parsed.counterDeliveryDays || proposedDelivery,
+            reasoning: parsed.reasoning || `Groq AI negotiation response (${modelCandidate})`,
+          };
+        }
+      } catch (err) {
+        // If 404 or decommissioned error, continue to next candidate model
+        if (err.message?.includes("not exist") || err.message?.includes("decommissioned") || err.status === 404) {
+          continue;
+        }
+        console.warn(`Groq AI negotiation model '${modelCandidate}' failed:`, err.message);
       }
-    } catch (err) {
-      console.warn("Groq AI negotiation call failed, using deterministic policy engine fallback:", err.message);
     }
   }
 

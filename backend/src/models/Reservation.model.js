@@ -4,12 +4,12 @@ const { Schema } = mongoose;
 
 const ReservationSchema = new Schema(
   {
-    productId: { type: Schema.Types.ObjectId, ref: "Product", required: true },
+    productId: { type: Schema.Types.ObjectId, ref: "Product", required: true, index: true },
     quantity: { type: Number, required: true, min: 1 },
-    transactionId: { type: Schema.Types.ObjectId, ref: "Transaction" },
+    transactionId: { type: Schema.Types.ObjectId, ref: "Transaction", index: true },
     expiresAt: {
       type: Date,
-      default: () => new Date(Date.now() + 15 * 60 * 1000), // 15 minutes default TTL
+      required: true,
       index: { expireAfterSeconds: 0 },
     },
   },
