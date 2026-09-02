@@ -2,11 +2,14 @@ import Transaction from "../models/Transaction.model.js";
 import { createOrder } from "../services/razorpay.service.js";
 import { acquireIdempotencyKey, completeIdempotencyKey } from "../services/idempotency.service.js";
 import { transitionTransaction } from "../stateMachine/transitions.js";
+import { logAudit } from "../services/audit.service.js";
 
 // POST /api/orders
 export async function createPaymentOrder(req, res, next) {
   try {
     const { transactionId } = req.body;
+    const io = req.app.get("io");
+
     if (!transactionId) {
       return res.status(400).json({ error: "transactionId is required" });
     }
@@ -31,8 +34,16 @@ export async function createPaymentOrder(req, res, next) {
     transitionTransaction(txn, "PAYMENT_PROCESSING");
     await txn.save();
 
-    // Emit socket event
-    const io = req.app.get("io");
+    await logAudit({
+      transactionId: txn._id,
+      action: "CREATE_RAZORPAY_ORDER",
+      reason: `Generated Razorpay Order ID '${order.id}' for ₹${(txn.amountInPaise / 100).toLocaleString('en-IN')}`,
+      actor: "POLICY_ENGINE",
+      result: "PAYMENT_PROCESSING",
+      metadata: { razorpayOrderId: order.id },
+      io,
+    });
+
     if (io) {
       io.emit("transaction.state_changed", {
         transactionId: txn._id,
@@ -56,6 +67,7 @@ export async function initiatePayment(req, res, next) {
     const { transactionId, idempotencyKey: bodyKey, simulateTimeout } = req.body;
     const headerKey = req.headers["x-idempotency-key"];
     const key = bodyKey || headerKey;
+    const io = req.app.get("io");
 
     if (!key) {
       return res.status(400).json({ error: "idempotencyKey is required (in body or x-idempotency-key header)" });
@@ -70,7 +82,16 @@ export async function initiatePayment(req, res, next) {
 
     if (!idempotency.acquired) {
       if (idempotency.isCompleted) {
-        console.log(`[Idempotency] Returning stored result for key '${key}'`);
+        await logAudit({
+          transactionId,
+          action: "IDEMPOTENCY_DEDUPE_BLOCK",
+          reason: `Duplicate payment initiation request blocked by idempotency key '${key}'. Returning cached response.`,
+          actor: "POLICY_ENGINE",
+          result: "CACHED_RESPONSE_RETURNED",
+          metadata: { idempotencyKey: key },
+          io,
+        });
+
         return res.json({
           cached: true,
           ...idempotency.response,
@@ -87,9 +108,6 @@ export async function initiatePayment(req, res, next) {
 
     // 3. Hero Demo Moment: Payment Timeout Simulation (Scene 6)
     if (simulateTimeout) {
-      console.log(`[Demo] Simulating Payment Timeout for Transaction #${txn._id}`);
-
-      // Lock state in PAYMENT_VERIFICATION
       if (txn.state === "PAYMENT_PENDING" || txn.state === "PAYMENT_PROCESSING") {
         transitionTransaction(txn, "PAYMENT_VERIFICATION");
         await txn.save();
@@ -106,7 +124,16 @@ export async function initiatePayment(req, res, next) {
 
       await completeIdempotencyKey(key, timeoutResponse);
 
-      const io = req.app.get("io");
+      await logAudit({
+        transactionId: txn._id,
+        action: "PAYMENT_TIMEOUT_SIMULATED",
+        reason: "Hero Demo Scene 6: Payment gateway response timed out. AgentPay protocol locked state in PAYMENT_VERIFICATION to prevent double-charging.",
+        actor: "POLICY_ENGINE",
+        result: "PAYMENT_VERIFICATION",
+        metadata: { idempotencyKey: key },
+        io,
+      });
+
       if (io) {
         io.emit("transaction.state_changed", {
           transactionId: txn._id,
@@ -136,7 +163,16 @@ export async function initiatePayment(req, res, next) {
 
     await completeIdempotencyKey(key, successResponse);
 
-    const io = req.app.get("io");
+    await logAudit({
+      transactionId: txn._id,
+      action: "INITIATE_PAYMENT_SUCCESS",
+      reason: `Initiated escrow payment with Razorpay payment ID '${txn.razorpayPaymentId}'`,
+      actor: "BUYER_AGENT",
+      result: "PAYMENT_VERIFICATION",
+      metadata: { razorpayPaymentId: txn.razorpayPaymentId, idempotencyKey: key },
+      io,
+    });
+
     if (io) {
       io.emit("transaction.state_changed", {
         transactionId: txn._id,

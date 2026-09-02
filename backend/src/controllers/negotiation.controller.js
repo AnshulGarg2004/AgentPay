@@ -12,6 +12,8 @@ export async function startNegotiation(req, res, next) {
       return res.status(400).json({ error: "productId is required" });
     }
 
+    const io = req.app.get("io");
+
     const negotiation = await createNegotiation({
       productId,
       buyerId,
@@ -19,6 +21,7 @@ export async function startNegotiation(req, res, next) {
       targetPriceInPaise,
       requestedDeliveryDays,
       notes,
+      io,
     });
 
     return res.status(201).json(negotiation);
@@ -37,12 +40,15 @@ export async function submitOffer(req, res, next) {
       return res.status(400).json({ error: "unitPriceInPaise is required for offer" });
     }
 
+    const io = req.app.get("io");
+
     const negotiation = await addOfferToNegotiation(id, {
       sender,
       quantity,
       unitPriceInPaise,
       deliveryDays,
       notes,
+      io,
     });
 
     return res.json(negotiation);

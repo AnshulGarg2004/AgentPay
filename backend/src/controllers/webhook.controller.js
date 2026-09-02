@@ -2,6 +2,7 @@ import WebhookEvent from "../models/WebhookEvent.model.js";
 import Transaction from "../models/Transaction.model.js";
 import { verifyWebhookSignature } from "../services/razorpay.service.js";
 import { transitionTransaction } from "../stateMachine/transitions.js";
+import { logAudit } from "../services/audit.service.js";
 
 // POST /api/webhooks/razorpay
 export async function handleRazorpayWebhook(req, res, next) {
@@ -9,6 +10,7 @@ export async function handleRazorpayWebhook(req, res, next) {
     const signature = req.headers["x-razorpay-signature"];
     const rawBody = typeof req.body === "string" ? req.body : JSON.stringify(req.body);
     const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+    const io = req.app.get("io");
 
     // Optional signature verification check
     if (signature && process.env.RAZORPAY_WEBHOOK_SECRET) {
@@ -31,7 +33,14 @@ export async function handleRazorpayWebhook(req, res, next) {
       });
     } catch (err) {
       if (err.code === 11000 || err.message?.includes("E11000")) {
-        console.log(`[Webhook] Deduplication: Ignoring duplicate webhook event '${eventId}'`);
+        await logAudit({
+          action: "WEBHOOK_DEDUPE_BLOCK",
+          reason: `Duplicate Razorpay webhook event '${eventId}' ignored`,
+          actor: "POLICY_ENGINE",
+          result: "IGNORED_DUPLICATE",
+          metadata: { eventId, type: eventType },
+          io,
+        });
         return res.status(200).json({ status: "ignored_duplicate", eventId });
       }
       throw err;
@@ -50,11 +59,8 @@ export async function handleRazorpayWebhook(req, res, next) {
     }
 
     if (!txn) {
-      console.warn(`[Webhook] Transaction not found for order '${orderId}' or txnId '${txnId}'`);
       return res.status(200).json({ status: "transaction_not_found" });
     }
-
-    const io = req.app.get("io");
 
     if (eventType === "payment.captured" || eventType === "payment.authorized") {
       txn.razorpayPaymentId = paymentEntity.id || txn.razorpayPaymentId || `pay_${Date.now()}`;
@@ -64,6 +70,16 @@ export async function handleRazorpayWebhook(req, res, next) {
         transitionTransaction(txn, "PAID");
         await txn.save();
       }
+
+      await logAudit({
+        transactionId: txn._id,
+        action: "WEBHOOK_PAYMENT_CAPTURED",
+        reason: `Verified Razorpay payment.captured webhook for payment ID '${txn.razorpayPaymentId}'. Escrow funds settled.`,
+        actor: "POLICY_ENGINE",
+        result: "PAID",
+        metadata: { eventId, razorpayPaymentId: txn.razorpayPaymentId },
+        io,
+      });
 
       if (io) {
         io.emit("payment.event", {
@@ -87,6 +103,16 @@ export async function handleRazorpayWebhook(req, res, next) {
         await txn.save();
       }
 
+      await logAudit({
+        transactionId: txn._id,
+        action: "WEBHOOK_PAYMENT_FAILED",
+        reason: "Received Razorpay webhook payment.failed notification.",
+        actor: "POLICY_ENGINE",
+        result: "PAYMENT_FAILED",
+        metadata: { eventId },
+        io,
+      });
+
       if (io) {
         io.emit("transaction.state_changed", {
           transactionId: txn._id,
@@ -107,6 +133,8 @@ export async function handleRazorpayWebhook(req, res, next) {
 export async function simulateCapturedWebhook(req, res, next) {
   try {
     const { transactionId } = req.body;
+    const io = req.app.get("io");
+
     if (!transactionId) {
       return res.status(400).json({ error: "transactionId is required" });
     }
@@ -122,7 +150,16 @@ export async function simulateCapturedWebhook(req, res, next) {
       await txn.save();
     }
 
-    const io = req.app.get("io");
+    await logAudit({
+      transactionId: txn._id,
+      action: "RECOVER_PAYMENT_VIA_WEBHOOK",
+      reason: `Hero Demo Recovery: Verified simulated Razorpay webhook payment.captured event. Advanced locked PAYMENT_VERIFICATION state to PAID.`,
+      actor: "POLICY_ENGINE",
+      result: "PAID",
+      metadata: { simulated: true, razorpayPaymentId: txn.razorpayPaymentId },
+      io,
+    });
+
     if (io) {
       io.emit("payment.event", {
         transactionId: txn._id,

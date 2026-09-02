@@ -3,6 +3,7 @@ import http from "http";
 import { Server } from "socket.io";
 import app from "./app.js";
 import { connectDB } from "./config/db.js";
+import { setupLiveActivityGateway } from "./sockets/liveActivity.gateway.js";
 
 const PORT = process.env.PORT || 4000;
 
@@ -10,10 +11,7 @@ async function start() {
   const server = http.createServer(app);
   const io = new Server(server, { cors: { origin: "*" } });
 
-  io.on("connection", (socket) => {
-    console.log("🔌 Client connected:", socket.id);
-  });
-
+  setupLiveActivityGateway(io);
   app.set("io", io); // access via req.app.get("io") in controllers
 
   server.listen(PORT, () => {

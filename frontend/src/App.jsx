@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import MerchantOnboarding from "./pages/merchant/MerchantOnboarding.jsx";
 import NegotiationThread from "./components/negotiation/NegotiationThread.jsx";
 import ApprovalQueue from "./components/approval/ApprovalQueue.jsx";
+import LiveActivityFeed from "./components/audit/LiveActivityFeed.jsx";
+import AuditTrail from "./components/audit/AuditTrail.jsx";
 import Badge from "./components/common/Badge.jsx";
 import Card from "./components/common/Card.jsx";
 import { api } from "./lib/api.js";
@@ -9,7 +11,7 @@ import { socket } from "./lib/socket.js";
 import { formatRupee } from "./lib/format.js";
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState("negotiation"); // 'negotiation' | 'onboarding' | 'approvals'
+  const [activeTab, setActiveTab] = useState("negotiation"); // 'negotiation' | 'approvals' | 'audit' | 'onboarding'
   const [health, setHealth] = useState(null);
   const [socketConnected, setSocketConnected] = useState(false);
 
@@ -78,7 +80,7 @@ export default function App() {
                   : "text-ink-400 hover:text-ink-900"
               }`}
             >
-              🤝 AI Negotiation & Quotes
+              🤝 AI Negotiation & Escrow
             </button>
             <button
               onClick={() => setActiveTab("approvals")}
@@ -89,6 +91,16 @@ export default function App() {
               }`}
             >
               🛡️ Approval Queue (Phase 4)
+            </button>
+            <button
+              onClick={() => setActiveTab("audit")}
+              className={`px-3.5 py-2 rounded-lg font-semibold transition-all ${
+                activeTab === "audit"
+                  ? "bg-white text-ink-900 shadow-sm"
+                  : "text-ink-400 hover:text-ink-900"
+              }`}
+            >
+              📜 Live Audit Stream (Phase 6)
             </button>
             <button
               onClick={() => setActiveTab("onboarding")}
@@ -126,6 +138,26 @@ export default function App() {
         {activeTab === "onboarding" && <MerchantOnboarding />}
 
         {activeTab === "approvals" && <ApprovalQueue />}
+
+        {activeTab === "audit" && (
+          <div className="space-y-6 animate-slideIn">
+            <div>
+              <h1 className="text-2xl font-bold text-ink-900 tracking-tight">Live Protocol Audit & Activity Stream</h1>
+              <p className="text-sm text-ink-400 mt-1">
+                Real-time Socket.IO stream and immutable database audit logs for all AI decision steps.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              <div className="lg:col-span-6">
+                <LiveActivityFeed />
+              </div>
+              <div className="lg:col-span-6">
+                <AuditTrail />
+              </div>
+            </div>
+          </div>
+        )}
 
         {activeTab === "negotiation" && (
           <div className="space-y-6 animate-slideIn">

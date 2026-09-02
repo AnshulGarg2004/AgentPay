@@ -2,8 +2,9 @@ import Negotiation from "../models/Negotiation.model.js";
 import Product from "../models/Product.model.js";
 import Merchant from "../models/Merchant.model.js";
 import { generateMerchantNegotiationResponse } from "./ai/negotiationAgent.js";
+import { logAudit } from "./audit.service.js";
 
-export async function createNegotiation({ productId, buyerId, quantity, targetPriceInPaise, requestedDeliveryDays, notes }) {
+export async function createNegotiation({ productId, buyerId, quantity, targetPriceInPaise, requestedDeliveryDays, notes, io = null }) {
   const product = await Product.findById(productId);
   if (!product) throw new Error("Product not found");
 
@@ -23,6 +24,15 @@ export async function createNegotiation({ productId, buyerId, quantity, targetPr
     deliveryDays: deliveryDays,
     reasoning: notes || `Initial offer for ${qty} unit(s) at ₹${(targetPrice / 100).toLocaleString('en-IN')}`,
   };
+
+  await logAudit({
+    action: "SUBMIT_INITIAL_OFFER",
+    reason: buyerOffer.reasoning,
+    actor: "BUYER_AGENT",
+    result: "OFFER_SUBMITTED",
+    metadata: { unitPriceInPaise: targetPrice, quantity: qty },
+    io,
+  });
 
   // 2. Generate Merchant Agent Response
   const merchantResponse = await generateMerchantNegotiationResponse({
@@ -44,6 +54,15 @@ export async function createNegotiation({ productId, buyerId, quantity, targetPr
     deliveryDays: merchantResponse.deliveryDays,
     reasoning: merchantResponse.reasoning,
   };
+
+  await logAudit({
+    action: `MERCHANT_${merchantResponse.action}`,
+    reason: merchantResponse.reasoning,
+    actor: "MERCHANT_AGENT",
+    result: merchantResponse.action,
+    metadata: { counterPriceInPaise: merchantResponse.unitPriceInPaise },
+    io,
+  });
 
   let status = "OPEN";
   let agreedOffer = null;
@@ -72,7 +91,7 @@ export async function createNegotiation({ productId, buyerId, quantity, targetPr
   return negotiation;
 }
 
-export async function addOfferToNegotiation(negotiationId, { sender, quantity, unitPriceInPaise, deliveryDays, notes }) {
+export async function addOfferToNegotiation(negotiationId, { sender, quantity, unitPriceInPaise, deliveryDays, notes, io = null }) {
   const negotiation = await Negotiation.findById(negotiationId);
   if (!negotiation) throw new Error("Negotiation thread not found");
 
@@ -99,6 +118,15 @@ export async function addOfferToNegotiation(negotiationId, { sender, quantity, u
 
   negotiation.offers.push(newBuyerOffer);
 
+  await logAudit({
+    action: "SUBMIT_COUNTER_OFFER",
+    reason: newBuyerOffer.reasoning,
+    actor: "BUYER_AGENT",
+    result: "COUNTER_SUBMITTED",
+    metadata: { unitPriceInPaise: price, quantity: qty },
+    io,
+  });
+
   // Generate Merchant Response
   const merchantResponse = await generateMerchantNegotiationResponse({
     product,
@@ -121,6 +149,15 @@ export async function addOfferToNegotiation(negotiationId, { sender, quantity, u
   };
 
   negotiation.offers.push(merchantOffer);
+
+  await logAudit({
+    action: `MERCHANT_${merchantResponse.action}`,
+    reason: merchantResponse.reasoning,
+    actor: "MERCHANT_AGENT",
+    result: merchantResponse.action,
+    metadata: { counterPriceInPaise: merchantResponse.unitPriceInPaise },
+    io,
+  });
 
   if (merchantResponse.action === "ACCEPT") {
     negotiation.status = "AGREED";
