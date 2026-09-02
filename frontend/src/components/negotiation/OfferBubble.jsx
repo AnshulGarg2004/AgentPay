@@ -15,10 +15,10 @@ export default function OfferBubble({ offer }) {
     <div
       className={`p-4 rounded-2xl border transition-all ${
         isBuyer
-          ? "bg-brand-50/50 border-brand-100 ml-4 md:ml-12"
+          ? "bg-brand-500/10 border-brand-500/30 ml-4 md:ml-12"
           : isMerchant
-          ? "bg-white border-surface-border shadow-card mr-4 md:mr-12"
-          : "bg-surface-alt border-surface-border"
+          ? "bg-surface-alt border-surface-border shadow-card mr-4 md:mr-12"
+          : "bg-surface border-surface-border"
       }`}
     >
       {/* Sender & Action Row */}
@@ -26,10 +26,10 @@ export default function OfferBubble({ offer }) {
         <div className="flex items-center space-x-2">
           <span
             className={`w-2 h-2 rounded-full ${
-              isBuyer ? "bg-brand-500" : isMerchant ? "bg-ink-900" : "bg-warning"
+              isBuyer ? "bg-brand-500 shadow-glow" : isMerchant ? "bg-purple-400" : "bg-warning"
             }`}
           />
-          <span className="text-xs font-semibold uppercase tracking-wide text-ink-900">
+          <span className="text-xs font-semibold uppercase tracking-wide text-white">
             {offer.sender === "BUYER_AGENT"
               ? "Buyer Agent"
               : offer.sender === "MERCHANT_AGENT"
@@ -41,10 +41,10 @@ export default function OfferBubble({ offer }) {
       </div>
 
       {/* Financial terms grid */}
-      <div className="grid grid-cols-3 gap-2 my-2 py-2 px-3 bg-white/80 rounded-xl border border-surface-border/60 text-xs">
+      <div className="grid grid-cols-3 gap-2 my-2 py-2 px-3 bg-surface rounded-xl border border-surface-border text-xs">
         <div>
           <span className="text-[10px] text-ink-400 block uppercase">Unit Price</span>
-          <span className="font-mono font-semibold text-ink-900">{formatRupee(offer.unitPriceInPaise)}</span>
+          <span className="font-mono font-semibold text-white">{formatRupee(offer.unitPriceInPaise)}</span>
         </div>
         <div>
           <span className="text-[10px] text-ink-400 block uppercase">Quantity</span>
@@ -58,7 +58,7 @@ export default function OfferBubble({ offer }) {
 
       {/* Reasoning text */}
       {offer.reasoning && (
-        <p className="text-xs text-ink-700 italic mt-2 bg-surface-alt/60 p-2.5 rounded-lg border border-surface-border/40">
+        <p className="text-xs text-ink-700 italic mt-2 bg-surface-alt p-2.5 rounded-lg border border-surface-border">
           "{offer.reasoning}"
         </p>
       )}

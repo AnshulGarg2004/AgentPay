@@ -18,7 +18,7 @@ export default function QuoteCard({ quote, onAcceptQuote }) {
   const effectiveStatus = isExpired ? "EXPIRED" : quote.status;
 
   return (
-    <Card className="space-y-4 border-2 transition-colors">
+    <Card hasGradientAccent className="space-y-4">
       {/* Header Row */}
       <div className="flex items-center justify-between border-b border-surface-border pb-3">
         <div>
@@ -26,7 +26,7 @@ export default function QuoteCard({ quote, onAcceptQuote }) {
             <span className="text-xs text-ink-400 font-mono">QUOTE #{String(quote._id).slice(-8).toUpperCase()}</span>
             <Badge status={effectiveStatus}>{effectiveStatus}</Badge>
           </div>
-          <h3 className="text-base font-bold text-ink-900 mt-1">{product.name || "B2B Product"}</h3>
+          <h3 className="text-base font-bold text-white mt-1">{product.name || "B2B Product"}</h3>
           <p className="text-xs text-ink-400">Sold by {merchant.name || "Verified Merchant"}</p>
         </div>
 
@@ -36,22 +36,22 @@ export default function QuoteCard({ quote, onAcceptQuote }) {
       </div>
 
       {/* Financial Details Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-surface-alt rounded-xl border border-surface-border">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-surface rounded-xl border border-surface-border">
         <div>
           <span className="text-[10px] text-ink-400 block uppercase font-medium">Agreed Unit Price</span>
-          <span className="text-base font-bold font-mono text-ink-900">{formatRupee(quote.unitPriceInPaise)}</span>
+          <span className="text-base font-bold font-mono text-white">{formatRupee(quote.unitPriceInPaise)}</span>
         </div>
         <div>
           <span className="text-[10px] text-ink-400 block uppercase font-medium">Quantity</span>
-          <span className="text-base font-bold font-mono text-ink-900">{quote.quantity} units</span>
+          <span className="text-base font-bold font-mono text-white">{quote.quantity} units</span>
         </div>
         <div>
           <span className="text-[10px] text-ink-400 block uppercase font-medium">Total Quote Value</span>
-          <span className="text-base font-bold font-mono text-brand-600">{formatRupee(quote.subtotalInPaise)}</span>
+          <span className="text-base font-bold font-mono text-brand-500">{formatRupee(quote.subtotalInPaise)}</span>
         </div>
         <div>
           <span className="text-[10px] text-ink-400 block uppercase font-medium">Guaranteed Delivery SLA</span>
-          <span className="text-base font-bold font-mono text-ink-900">{quote.deliveryDays} business days</span>
+          <span className="text-base font-bold font-mono text-white">{quote.deliveryDays} business days</span>
         </div>
       </div>
 
@@ -64,11 +64,11 @@ export default function QuoteCard({ quote, onAcceptQuote }) {
 
       {/* Expiry Banner or Action Button */}
       {isExpired ? (
-        <div className="p-3 bg-danger-light border border-danger/30 rounded-xl text-center">
-          <p className="text-xs font-semibold text-danger-dark">
+        <div className="p-3 bg-danger-dark/40 border border-danger/30 rounded-xl text-center">
+          <p className="text-xs font-semibold text-danger">
             ⚠️ THIS QUOTE HAS EXPIRED.
           </p>
-          <p className="text-[11px] text-danger-dark/80 mt-0.5">
+          <p className="text-[11px] text-ink-400 mt-0.5">
             Price and inventory locks have been released. Please initiate a new negotiation to obtain an active quote.
           </p>
         </div>

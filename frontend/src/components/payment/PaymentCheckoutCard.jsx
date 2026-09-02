@@ -88,7 +88,7 @@ export default function PaymentCheckoutCard({ transaction, onStateUpdated }) {
           contact: "9876543210",
         },
         theme: {
-          color: "#4f46e5",
+          color: "#7c5cff",
         },
         handler: async function (response) {
           console.log("Razorpay Checkout Success Response:", response);
@@ -195,7 +195,7 @@ export default function PaymentCheckoutCard({ transaction, onStateUpdated }) {
       {/* State Machine Visualization Timeline */}
       <StateTimeline currentState={txn.state} />
 
-      <Card className="space-y-6 border-2 border-brand-500/20">
+      <Card hasGradientAccent className="space-y-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-surface-border pb-4">
           <div>
@@ -203,7 +203,7 @@ export default function PaymentCheckoutCard({ transaction, onStateUpdated }) {
               <span className="text-xs font-mono text-ink-400">TXN #{String(txn._id).slice(-8).toUpperCase()}</span>
               <Badge status={txn.state}>{txn.state}</Badge>
             </div>
-            <h2 className="text-lg font-bold text-ink-900 mt-1">
+            <h2 className="text-lg font-bold text-white mt-1">
               Autonomous Escrow Payment Settlement
             </h2>
             <p className="text-xs text-ink-400">Item: {product.name || "B2B Product"} | Merchant: {merchant.name || "Verified Merchant"}</p>
@@ -211,17 +211,17 @@ export default function PaymentCheckoutCard({ transaction, onStateUpdated }) {
 
           <div className="text-right">
             <span className="text-xs uppercase text-ink-400 font-medium block">Total Payable Amount</span>
-            <span className="text-2xl font-bold font-mono text-brand-600">{formatRupee(txn.amountInPaise)}</span>
+            <span className="text-2xl font-bold font-mono text-brand-500">{formatRupee(txn.amountInPaise)}</span>
           </div>
         </div>
 
         {/* Idempotency Key Banner */}
-        <div className="p-3 bg-surface-alt border border-surface-border rounded-xl flex items-center justify-between text-xs font-mono">
+        <div className="p-3 bg-surface border border-surface-border rounded-xl flex items-center justify-between text-xs font-mono">
           <div>
             <span className="text-ink-400 block text-[10px] uppercase font-sans">Active Idempotency Guarantee Key</span>
-            <span className="text-brand-700 font-semibold">{idempotencyKey}</span>
+            <span className="text-brand-500 font-semibold">{idempotencyKey}</span>
           </div>
-          <span className="text-[10px] bg-brand-50 text-brand-700 px-2 py-0.5 rounded border border-brand-200">
+          <span className="text-[10px] bg-brand-500/20 text-brand-400 px-2 py-0.5 rounded border border-brand-500/30">
             MongoDB Unique Index Dedupe Active
           </span>
         </div>
@@ -229,16 +229,16 @@ export default function PaymentCheckoutCard({ transaction, onStateUpdated }) {
         {/* Action Panel based on state */}
         <div className="space-y-4">
           {(txn.state === "PAYMENT_PENDING" || txn.state === "PAYMENT_PROCESSING" || txn.state === "RESERVED" || txn.state === "AGREED") && (
-            <div className="space-y-4 p-4 bg-brand-50/50 border border-brand-100 rounded-2xl">
+            <div className="space-y-4 p-4 bg-surface border border-surface-border rounded-2xl">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-sm font-bold text-ink-900">Execute Razorpay Payment</h3>
-                  <p className="text-xs text-ink-700">
+                  <h3 className="text-sm font-bold text-white">Execute Razorpay Payment</h3>
+                  <p className="text-xs text-ink-400">
                     Pay via official Razorpay Checkout popup (Supports Test Cards, Netbanking & UPI).
                   </p>
                 </div>
                 {txn.razorpayOrderId && (
-                  <span className="text-xs font-mono bg-white px-2 py-1 rounded border border-brand-200 text-brand-700">
+                  <span className="text-xs font-mono bg-surface-alt px-2 py-1 rounded border border-surface-border text-brand-500">
                     Order ID: {txn.razorpayOrderId}
                   </span>
                 )}
@@ -253,7 +253,7 @@ export default function PaymentCheckoutCard({ transaction, onStateUpdated }) {
                   ⚡ Auto-Simulate Successful Payment
                 </Button>
 
-                <Button variant="secondary" className="border-warning text-warning-dark hover:bg-warning-light/50 text-xs" disabled={isLoading} onClick={() => handleInitiatePayment(true)}>
+                <Button variant="secondary" className="border-warning/40 text-warning hover:bg-warning-dark/50 text-xs" disabled={isLoading} onClick={() => handleInitiatePayment(true)}>
                   ⏱️ Simulate Payment Timeout (Scene 6)
                 </Button>
               </div>
@@ -262,28 +262,28 @@ export default function PaymentCheckoutCard({ transaction, onStateUpdated }) {
 
           {/* HERO DEMO MOMENT: PAYMENT TIMEOUT RECOVERY IN PAYMENT_VERIFICATION */}
           {txn.state === "PAYMENT_VERIFICATION" && (
-            <div className="p-5 bg-warning-light/80 border-2 border-warning rounded-2xl space-y-4 animate-fadeIn">
+            <div className="p-5 bg-warning-dark/40 border-2 border-warning/60 rounded-2xl space-y-4">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-xl bg-warning text-white flex items-center justify-center font-bold text-xl shadow-sm">
+                <div className="w-10 h-10 rounded-xl bg-warning text-surface flex items-center justify-center font-bold text-xl shadow-sm">
                   ⏱️
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-warning-dark">
+                  <h3 className="text-base font-bold text-warning">
                     HERO DEMO: Payment Timeout Held in PAYMENT_VERIFICATION
                   </h3>
-                  <p className="text-xs text-warning-dark/90 mt-0.5">
+                  <p className="text-xs text-ink-400 mt-0.5">
                     AgentPay protocol locked state in <code>PAYMENT_VERIFICATION</code> to prevent double-charging. Awaiting Razorpay Webhook.
                   </p>
                 </div>
               </div>
 
-              <div className="p-3 bg-white/90 rounded-xl border border-warning/30 text-xs text-ink-700 font-mono space-y-1">
+              <div className="p-3 bg-surface rounded-xl border border-warning/30 text-xs text-ink-400 font-mono space-y-1">
                 <div>• Idempotency Key: {idempotencyKey}</div>
                 <div>• Retry attempt blocked: Will return cached IN_PROGRESS response instead of re-charging Razorpay</div>
               </div>
 
               <div className="flex items-center justify-between pt-2 border-t border-warning/30">
-                <span className="text-xs font-semibold text-warning-dark">
+                <span className="text-xs font-semibold text-warning">
                   Simulate Webhook Delivery to Complete Escrow Settlement:
                 </span>
                 <Button variant="primary" disabled={isLoading} onClick={handleFireSimulatedWebhook}>
@@ -294,14 +294,14 @@ export default function PaymentCheckoutCard({ transaction, onStateUpdated }) {
           )}
 
           {txn.state === "PAYMENT_FAILED" && (
-            <div className="p-5 bg-red-50 border-2 border-red-200 rounded-2xl space-y-3 animate-fadeIn">
+            <div className="p-5 bg-danger-dark/40 border-2 border-danger/40 rounded-2xl space-y-3">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-xl bg-red-600 text-white flex items-center justify-center font-bold text-xl">
+                <div className="w-10 h-10 rounded-xl bg-danger text-white flex items-center justify-center font-bold text-xl">
                   ✕
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-red-900">Payment Declined / Failed</h3>
-                  <p className="text-xs text-red-700 mt-0.5">
+                  <h3 className="text-base font-bold text-danger">Payment Declined / Failed</h3>
+                  <p className="text-xs text-ink-400 mt-0.5">
                     {txn.paymentFailureReason || "The payment attempt was declined or cancelled at Razorpay checkout."}
                   </p>
                 </div>
@@ -316,15 +316,15 @@ export default function PaymentCheckoutCard({ transaction, onStateUpdated }) {
           )}
 
           {txn.state === "PAID" && (
-            <div className="p-5 bg-success-light border-2 border-success/40 rounded-2xl text-center space-y-2 animate-fadeIn">
+            <div className="p-5 bg-success-dark/40 border-2 border-success/40 rounded-2xl text-center space-y-2">
               <div className="w-12 h-12 rounded-full bg-success text-white flex items-center justify-center text-2xl font-bold mx-auto">
                 ✓
               </div>
-              <h3 className="text-lg font-bold text-success-dark">🎉 Transaction Paid & Settled via AgentPay Escrow</h3>
-              <p className="text-xs text-success-dark/90 font-mono">
+              <h3 className="text-lg font-bold text-success">🎉 Transaction Paid & Settled via AgentPay Escrow</h3>
+              <p className="text-xs text-ink-400 font-mono">
                 Razorpay Payment ID: {txn.razorpayPaymentId || "pay_verified"}
               </p>
-              <p className="text-[11px] text-success-dark/70">
+              <p className="text-[11px] text-ink-400">
                 Payment verified cleanly via Razorpay checkout & webhook. Inventory locked and fulfillment initiated.
               </p>
             </div>
@@ -335,7 +335,7 @@ export default function PaymentCheckoutCard({ transaction, onStateUpdated }) {
         {lastResponse && (
           <div className="space-y-1">
             <span className="text-[10px] font-mono text-ink-400 uppercase">Protocol Response Log</span>
-            <pre className="p-3 bg-ink-900 text-green-400 text-xs font-mono rounded-xl overflow-x-auto max-h-40">
+            <pre className="p-3 bg-surface text-green-400 text-xs font-mono rounded-xl overflow-x-auto max-h-40 border border-surface-border">
               {JSON.stringify(lastResponse, null, 2)}
             </pre>
           </div>

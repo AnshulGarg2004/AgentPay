@@ -145,26 +145,26 @@ export default function NegotiationThread({
   return (
     <div className="space-y-6">
       {/* Target Product Summary Banner */}
-      <Card className="bg-surface-alt border-surface-border">
+      <Card hasGradientAccent className="bg-surface-alt border-surface-border">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center space-x-2">
-              <span className="text-[10px] font-mono uppercase bg-slate-200 px-2 py-0.5 rounded text-slate-700 font-bold">
+              <span className="text-[10px] font-mono uppercase bg-surface-border px-2 py-0.5 rounded text-brand-400 font-bold">
                 {product.attributes?.category || "Product"}
               </span>
               <span className="text-xs text-ink-400">Merchant: {product.merchantId?.name || "Verified Merchant"}</span>
             </div>
-            <h2 className="text-xl font-bold text-ink-900 mt-1">{product.name}</h2>
+            <h2 className="text-xl font-bold text-white mt-1">{product.name}</h2>
           </div>
 
           <div className="flex items-center space-x-6 text-right">
             <div>
               <span className="text-xs text-ink-400 block uppercase">Standard Price</span>
-              <span className="text-lg font-bold font-mono text-ink-900">{formatRupee(product.priceInPaise)}</span>
+              <span className="text-lg font-bold font-mono text-white">{formatRupee(product.priceInPaise)}</span>
             </div>
             <div>
               <span className="text-xs text-ink-400 block uppercase">Floor Price</span>
-              <span className="text-sm font-mono text-ink-700">{formatRupee(product.minPriceInPaise)}</span>
+              <span className="text-sm font-mono text-brand-500">{formatRupee(product.minPriceInPaise)}</span>
             </div>
           </div>
         </div>
@@ -174,25 +174,25 @@ export default function NegotiationThread({
       {!negotiation ? (
         /* Initial Offer Creation Panel */
         <Card className="space-y-4">
-          <h3 className="text-base font-bold text-ink-900 border-b border-surface-border pb-2">
+          <h3 className="text-base font-bold text-white border-b border-surface-border pb-2">
             Initiate Autonomous AI Negotiation
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs font-medium uppercase text-ink-700 mb-1">
+              <label className="block text-xs font-medium uppercase text-ink-400 mb-1">
                 Target Unit Price (₹)
               </label>
               <input
                 type="number"
                 value={targetPriceRupees}
                 onChange={(e) => setTargetPriceRupees(e.target.value)}
-                className="w-full px-3.5 py-2 rounded-lg border border-surface-border font-mono text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full px-3.5 py-2 rounded-lg border border-surface-border bg-surface font-mono text-sm text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium uppercase text-ink-700 mb-1">
+              <label className="block text-xs font-medium uppercase text-ink-400 mb-1">
                 Quantity Required
               </label>
               <input
@@ -200,12 +200,12 @@ export default function NegotiationThread({
                 min="1"
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value)}
-                className="w-full px-3.5 py-2 rounded-lg border border-surface-border font-mono text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full px-3.5 py-2 rounded-lg border border-surface-border bg-surface font-mono text-sm text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium uppercase text-ink-700 mb-1">
+              <label className="block text-xs font-medium uppercase text-ink-400 mb-1">
                 Delivery SLA (Days)
               </label>
               <input
@@ -213,13 +213,13 @@ export default function NegotiationThread({
                 min="1"
                 value={deliveryDays}
                 onChange={(e) => setDeliveryDays(e.target.value)}
-                className="w-full px-3.5 py-2 rounded-lg border border-surface-border font-mono text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full px-3.5 py-2 rounded-lg border border-surface-border bg-surface font-mono text-sm text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-medium uppercase text-ink-700 mb-1">
+            <label className="block text-xs font-medium uppercase text-ink-400 mb-1">
               Buyer Agent Note / Offer Context
             </label>
             <input
@@ -227,7 +227,7 @@ export default function NegotiationThread({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="e.g. Requesting bulk discount for upfront payment terms"
-              className="w-full px-3.5 py-2 rounded-lg border border-surface-border text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full px-3.5 py-2 rounded-lg border border-surface-border bg-surface text-sm text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
           </div>
 
@@ -243,7 +243,7 @@ export default function NegotiationThread({
           <Card className="space-y-4">
             <div className="flex items-center justify-between border-b border-surface-border pb-3">
               <div className="flex items-center space-x-2">
-                <h3 className="text-base font-bold text-ink-900">Negotiation Thread</h3>
+                <h3 className="text-base font-bold text-white">Negotiation Thread</h3>
                 <span className="text-xs font-mono text-ink-400">#{String(negotiation._id).slice(-8)}</span>
               </div>
               <Badge status={negotiation.status}>{negotiation.status}</Badge>
@@ -259,7 +259,7 @@ export default function NegotiationThread({
             {/* Status-specific Action Bar */}
             {negotiation.status === "OPEN" && (
               <div className="pt-4 border-t border-surface-border space-y-4">
-                <h4 className="text-xs font-semibold uppercase tracking-wide text-ink-700">Submit Buyer Counter Offer</h4>
+                <h4 className="text-xs font-semibold uppercase tracking-wide text-ink-400">Submit Buyer Counter Offer</h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-xs text-ink-400 mb-1">Counter Unit Price (₹)</label>
@@ -267,7 +267,7 @@ export default function NegotiationThread({
                       type="number"
                       value={targetPriceRupees}
                       onChange={(e) => setTargetPriceRupees(e.target.value)}
-                      className="w-full px-3 py-1.5 rounded-lg border border-surface-border text-xs font-mono"
+                      className="w-full px-3 py-1.5 rounded-lg border border-surface-border bg-surface text-xs font-mono text-white"
                     />
                   </div>
                   <div>
@@ -276,7 +276,7 @@ export default function NegotiationThread({
                       type="number"
                       value={quantity}
                       onChange={(e) => setQuantity(e.target.value)}
-                      className="w-full px-3 py-1.5 rounded-lg border border-surface-border text-xs font-mono"
+                      className="w-full px-3 py-1.5 rounded-lg border border-surface-border bg-surface text-xs font-mono text-white"
                     />
                   </div>
                   <div>
@@ -285,7 +285,7 @@ export default function NegotiationThread({
                       type="number"
                       value={deliveryDays}
                       onChange={(e) => setDeliveryDays(e.target.value)}
-                      className="w-full px-3 py-1.5 rounded-lg border border-surface-border text-xs font-mono"
+                      className="w-full px-3 py-1.5 rounded-lg border border-surface-border bg-surface text-xs font-mono text-white"
                     />
                   </div>
                 </div>
@@ -299,10 +299,10 @@ export default function NegotiationThread({
             )}
 
             {negotiation.status === "AGREED" && !activeQuote && (
-              <div className="p-4 bg-success-light border border-success/30 rounded-xl flex items-center justify-between">
+              <div className="p-4 bg-success-dark/40 border border-success/30 rounded-xl flex items-center justify-between">
                 <div>
-                  <h4 className="text-sm font-bold text-success-dark">🎉 Terms Agreed by Merchant AI!</h4>
-                  <p className="text-xs text-success-dark/80 mt-0.5">
+                  <h4 className="text-sm font-bold text-success">🎉 Terms Agreed by Merchant AI!</h4>
+                  <p className="text-xs text-ink-400 mt-0.5">
                     Final Agreed Unit Price: {formatRupee(negotiation.agreedOffer?.unitPriceInPaise)} | Qty: {negotiation.agreedOffer?.quantity}
                   </p>
                 </div>
@@ -315,7 +315,7 @@ export default function NegotiationThread({
 
           {/* Render Active Quote Card once generated */}
           {activeQuote && !acceptedTxn && (
-            <div className="animate-slideIn space-y-4">
+            <div className="space-y-4">
               <h3 className="text-sm font-bold uppercase tracking-wide text-ink-400">
                 Generated Binding Quote
               </h3>

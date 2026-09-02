@@ -10,15 +10,18 @@ import NegotiationThread from "./components/negotiation/NegotiationThread.jsx";
 import ApprovalQueue from "./components/approval/ApprovalQueue.jsx";
 import LiveActivityFeed from "./components/audit/LiveActivityFeed.jsx";
 import AuditTrail from "./components/audit/AuditTrail.jsx";
-import Badge from "./components/common/Badge.jsx";
 import Card from "./components/common/Card.jsx";
+import Sidebar, { NAV_ITEMS } from "./components/layout/Sidebar.jsx";
+import Topbar from "./components/layout/Topbar.jsx";
+import PageShell from "./components/layout/PageShell.jsx";
 import { api } from "./lib/api.js";
 import { socket } from "./lib/socket.js";
 import { formatRupee } from "./lib/format.js";
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState("buyer-console"); // default to buyer-console or home
+  const [activeTab, setActiveTab] = useState("buyer-console"); // default to buyer-console
   const [selectedTxnId, setSelectedTxnId] = useState(null);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   const [health, setHealth] = useState(null);
   const [socketConnected, setSocketConnected] = useState(false);
@@ -78,242 +81,194 @@ export default function App() {
     setActiveTab("negotiation");
   }
 
+  const activeNavItem = NAV_ITEMS.find((n) => n.id === activeTab);
+  const activeTabName = activeNavItem ? activeNavItem.label : activeTab === "detail" ? "Transaction Detail" : "Dashboard";
+
   return (
-    <div className="min-h-screen bg-surface-alt font-sans text-ink-700 flex flex-col">
-      {/* Top Bar Navigation */}
-      <header className="bg-white border-b border-surface-border shadow-card px-6 py-3.5 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setActiveTab("home")}>
-            <div className="w-9 h-9 rounded-xl bg-brand-500 text-white font-bold flex items-center justify-center text-xl shadow-sm">
-              A
-            </div>
-            <div>
-              <span className="text-lg font-bold text-ink-900 tracking-tight">AgentPay</span>
-              <span className="text-xs text-ink-400 block -mt-1 font-mono">Autonomous AI Agent Governance & Escrow</span>
-            </div>
-          </div>
+    <div className="min-h-screen bg-surface font-sans text-white flex flex-col relative overflow-x-hidden">
+      {/* Ambient Blurred Background Glow Circles */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        {/* Top-Left Brand Glow */}
+        <div className="absolute -top-32 -left-32 w-96 h-96 bg-brand-500/15 rounded-full blur-[120px]" />
+        {/* Top-Right Purple Glow */}
+        <div className="absolute top-1/4 -right-32 w-96 h-96 bg-purple-600/10 rounded-full blur-[140px]" />
+        {/* Bottom-Center Cyan Glow */}
+        <div className="absolute -bottom-24 left-1/3 w-[500px] h-[500px] bg-cyan-500/10 rounded-full blur-[150px]" />
+      </div>
 
-          {/* Navigation Bar */}
-          <div className="flex items-center flex-wrap gap-1 bg-surface-alt p-1 rounded-xl border border-surface-border text-xs">
-            <button
-              onClick={() => setActiveTab("home")}
-              className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${
-                activeTab === "home" ? "bg-white text-ink-900 shadow-sm" : "text-ink-400 hover:text-ink-900"
-              }`}
-            >
-              🏠 Home
-            </button>
-            <button
-              onClick={() => setActiveTab("buyer-console")}
-              className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${
-                activeTab === "buyer-console" ? "bg-white text-ink-900 shadow-sm" : "text-ink-400 hover:text-ink-900"
-              }`}
-            >
-              💬 Buyer Console
-            </button>
-            <button
-              onClick={() => setActiveTab("negotiation")}
-              className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${
-                activeTab === "negotiation" ? "bg-white text-ink-900 shadow-sm" : "text-ink-400 hover:text-ink-900"
-              }`}
-            >
-              🤝 AI Studio
-            </button>
-            <button
-              onClick={() => setActiveTab("approvals")}
-              className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${
-                activeTab === "approvals" ? "bg-white text-ink-900 shadow-sm" : "text-ink-400 hover:text-ink-900"
-              }`}
-            >
-              🛡️ Approval Queue
-            </button>
-            <button
-              onClick={() => setActiveTab("explorer")}
-              className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${
-                activeTab === "explorer" || activeTab === "detail" ? "bg-white text-ink-900 shadow-sm" : "text-ink-400 hover:text-ink-900"
-              }`}
-            >
-              🔍 Explorer
-            </button>
-            <button
-              onClick={() => setActiveTab("merchant-dashboard")}
-              className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${
-                activeTab === "merchant-dashboard" ? "bg-white text-ink-900 shadow-sm" : "text-ink-400 hover:text-ink-900"
-              }`}
-            >
-              📊 Merchant Ops
-            </button>
-            <button
-              onClick={() => setActiveTab("buyer-dashboard")}
-              className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${
-                activeTab === "buyer-dashboard" ? "bg-white text-ink-900 shadow-sm" : "text-ink-400 hover:text-ink-900"
-              }`}
-            >
-              💼 Buyer Portal
-            </button>
-            <button
-              onClick={() => setActiveTab("audit")}
-              className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${
-                activeTab === "audit" ? "bg-white text-ink-900 shadow-sm" : "text-ink-400 hover:text-ink-900"
-              }`}
-            >
-              📜 Live Audit
-            </button>
-            <button
-              onClick={() => setActiveTab("onboarding")}
-              className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${
-                activeTab === "onboarding" ? "bg-white text-ink-900 shadow-sm" : "text-ink-400 hover:text-ink-900"
-              }`}
-            >
-              🏬 Onboarding
-            </button>
-          </div>
+      {/* Sidebar Layout */}
+      <Sidebar
+        activeTab={activeTab}
+        onNavigate={(tab) => setActiveTab(tab)}
+        mobileOpen={mobileSidebarOpen}
+        onCloseMobile={() => setMobileSidebarOpen(false)}
+      />
 
-          {/* Health Badges */}
-          <div className="hidden xl:flex items-center space-x-3">
-            <div className="flex items-center space-x-1.5 text-[11px]">
-              <span className="text-ink-400">API:</span>
-              <Badge status={health?.status === "ok" ? "PAID" : "FAILED"}>
-                {health?.status === "ok" ? "OK" : "Offline"}
-              </Badge>
-            </div>
-            <div className="flex items-center space-x-1.5 text-[11px]">
-              <span className="text-ink-400">Socket:</span>
-              <Badge status={socketConnected ? "PAID" : "PENDING"}>
-                {socketConnected ? "Connected" : "Connecting"}
-              </Badge>
-            </div>
-          </div>
-        </div>
-      </header>
+      {/* Main Content Area */}
+      <div className="md:pl-16 lg:pl-64 flex flex-col flex-1 min-h-screen transition-all duration-200">
+        <Topbar
+          onToggleMobile={() => setMobileSidebarOpen(!mobileSidebarOpen)}
+          activeTabName={activeTabName}
+          health={health}
+          socketConnected={socketConnected}
+          onNavigate={(tab) => setActiveTab(tab)}
+        />
 
-      {/* Main Container */}
-      <main className="max-w-7xl mx-auto px-6 py-8 flex-1 w-full">
-        {activeTab === "home" && <LandingPage onNavigate={(tab) => setActiveTab(tab)} />}
+        <main className="max-w-7xl mx-auto px-4 lg:px-8 py-8 flex-1 w-full">
+          {activeTab === "home" && (
+            <PageShell key="home">
+              <LandingPage onNavigate={(tab) => setActiveTab(tab)} />
+            </PageShell>
+          )}
 
-        {activeTab === "buyer-console" && (
-          <BuyerConsole onInitiateNegotiation={handleInitiateNegotiationFromConsole} />
-        )}
+          {activeTab === "buyer-console" && (
+            <PageShell key="buyer-console">
+              <BuyerConsole onInitiateNegotiation={handleInitiateNegotiationFromConsole} />
+            </PageShell>
+          )}
 
-        {activeTab === "onboarding" && <MerchantOnboarding />}
+          {activeTab === "onboarding" && (
+            <PageShell key="onboarding">
+              <MerchantOnboarding />
+            </PageShell>
+          )}
 
-        {activeTab === "approvals" && <ApprovalQueue />}
+          {activeTab === "approvals" && (
+            <PageShell key="approvals">
+              <ApprovalQueue />
+            </PageShell>
+          )}
 
-        {activeTab === "merchant-dashboard" && (
-          <MerchantDashboard onSelectTransaction={handleSelectTransaction} />
-        )}
+          {activeTab === "merchant-dashboard" && (
+            <PageShell key="merchant-dashboard">
+              <MerchantDashboard onSelectTransaction={handleSelectTransaction} />
+            </PageShell>
+          )}
 
-        {activeTab === "buyer-dashboard" && (
-          <BuyerDashboard onSelectTransaction={handleSelectTransaction} />
-        )}
+          {activeTab === "buyer-dashboard" && (
+            <PageShell key="buyer-dashboard">
+              <BuyerDashboard onSelectTransaction={handleSelectTransaction} />
+            </PageShell>
+          )}
 
-        {activeTab === "explorer" && (
-          <TransactionExplorer onSelectTransaction={handleSelectTransaction} />
-        )}
+          {activeTab === "explorer" && (
+            <PageShell key="explorer">
+              <TransactionExplorer onSelectTransaction={handleSelectTransaction} />
+            </PageShell>
+          )}
 
-        {activeTab === "detail" && selectedTxnId && (
-          <div className="space-y-4">
-            <button
-              onClick={() => setActiveTab("explorer")}
-              className="text-xs font-semibold text-brand-600 hover:text-brand-700 flex items-center space-x-1"
-            >
-              <span>← Back to Transaction Explorer</span>
-            </button>
-            <TransactionDetailPage transactionId={selectedTxnId} />
-          </div>
-        )}
-
-        {activeTab === "audit" && (
-          <div className="space-y-6 animate-slideIn">
-            <div>
-              <h1 className="text-2xl font-bold text-ink-900 tracking-tight">Live Protocol Audit & Activity Stream</h1>
-              <p className="text-sm text-ink-400 mt-1">
-                Real-time Socket.IO stream and immutable database audit logs for all AI decision steps.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-              <div className="lg:col-span-6">
-                <LiveActivityFeed />
+          {activeTab === "detail" && selectedTxnId && (
+            <PageShell key="detail">
+              <div className="space-y-4">
+                <button
+                  onClick={() => setActiveTab("explorer")}
+                  className="text-xs font-semibold text-brand-500 hover:text-brand-400 flex items-center space-x-1 transition-colors"
+                >
+                  <span>← Back to Transaction Explorer</span>
+                </button>
+                <TransactionDetailPage transactionId={selectedTxnId} />
               </div>
-              <div className="lg:col-span-6">
-                <AuditTrail />
+            </PageShell>
+          )}
+
+          {activeTab === "audit" && (
+            <PageShell key="audit">
+              <div className="space-y-6">
+                <div>
+                  <h1 className="text-2xl font-bold text-white tracking-tight">Live Protocol Audit & Activity Stream</h1>
+                  <p className="text-sm text-ink-400 mt-1">
+                    Real-time Socket.IO stream and immutable database audit logs for all AI decision steps.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                  <div className="lg:col-span-6">
+                    <LiveActivityFeed />
+                  </div>
+                  <div className="lg:col-span-6">
+                    <AuditTrail />
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        )}
+            </PageShell>
+          )}
 
-        {activeTab === "negotiation" && (
-          <div className="space-y-6 animate-slideIn">
-            <div>
-              <h1 className="text-2xl font-bold text-ink-900 tracking-tight">Autonomous AI Negotiation Studio</h1>
-              <p className="text-sm text-ink-400 mt-1">
-                Select a product from the catalog to initiate real-time AI negotiation between Buyer Agent and Merchant Policy Engine.
-              </p>
-            </div>
+          {activeTab === "negotiation" && (
+            <PageShell key="negotiation">
+              <div className="space-y-6">
+                <div>
+                  <h1 className="text-2xl font-bold text-white tracking-tight">Autonomous AI Negotiation Studio</h1>
+                  <p className="text-sm text-ink-400 mt-1">
+                    Select a product from the catalog to initiate real-time AI negotiation between Buyer Agent and Merchant Policy Engine.
+                  </p>
+                </div>
 
-            {/* Product Selector Ribbon */}
-            <div className="bg-white p-4 rounded-2xl shadow-card border border-surface-border space-y-3">
-              <label className="block text-xs font-semibold uppercase tracking-wide text-ink-700">
-                Select Product for Negotiation Demo ({products.length} Products Available)
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {products.map((p) => {
-                  const isSelected = p._id === selectedProductId;
-                  return (
-                    <button
-                      key={p._id}
-                      onClick={() => {
-                        setSelectedProductId(p._id);
-                        setNegotiationPreFill(null);
-                      }}
-                      className={`px-3 py-2 rounded-xl text-xs font-medium border text-left transition-all ${
-                        isSelected
-                          ? "bg-brand-50 border-brand-500 text-brand-700 ring-2 ring-brand-500/20"
-                          : "bg-white border-surface-border text-ink-700 hover:bg-surface-alt"
-                      }`}
-                    >
-                      <div className="font-semibold">{p.name}</div>
-                      <div className="text-[11px] font-mono text-ink-400 mt-0.5">
-                        Base: {formatRupee(p.priceInPaise)} | Floor: {formatRupee(p.minPriceInPaise)}
-                      </div>
-                    </button>
-                  );
-                })}
+                {/* Product Selector Ribbon */}
+                <Card hasGradientAccent className="space-y-3">
+                  <label className="block text-xs font-semibold uppercase tracking-wide text-ink-400">
+                    Select Product for Negotiation Demo ({products.length} Products Available)
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {products.map((p) => {
+                      const isSelected = p._id === selectedProductId;
+                      return (
+                        <button
+                          key={p._id}
+                          onClick={() => {
+                            setSelectedProductId(p._id);
+                            setNegotiationPreFill(null);
+                          }}
+                          className={`px-3 py-2 rounded-xl text-xs font-medium border text-left transition-all ${
+                            isSelected
+                              ? "bg-brand-500/20 border-brand-500 text-white ring-2 ring-brand-500/30"
+                              : "bg-surface-alt border-surface-border text-ink-700 hover:bg-surface-border hover:text-white"
+                          }`}
+                        >
+                          <div className="font-semibold">{p.name}</div>
+                          <div className="text-[11px] font-mono text-ink-400 mt-0.5">
+                            Base: {formatRupee(p.priceInPaise)} | Floor: {formatRupee(p.minPriceInPaise)}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </Card>
+
+                {/* Negotiation Thread Component */}
+                {selectedProductId ? (
+                  <NegotiationThread
+                    productId={selectedProductId}
+                    initialQuantity={negotiationPreFill?.quantity}
+                    initialTargetPriceInPaise={negotiationPreFill?.targetPriceInPaise}
+                    initialDeliveryDays={negotiationPreFill?.requestedDeliveryDays}
+                    initialNotes={negotiationPreFill?.notes}
+                    onQuoteGenerated={(quote) => {
+                      console.log("Quote created:", quote);
+                    }}
+                  />
+                ) : (
+                  <Card>
+                    <p className="text-xs text-ink-400">Please seed products first by running `npm run seed` in backend directory.</p>
+                  </Card>
+                )}
               </div>
+            </PageShell>
+          )}
+        </main>
+
+        {/* Footer */}
+        <footer className="bg-surface border-t border-surface-border py-6 px-8 text-center text-xs text-ink-400">
+          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center space-x-2 font-mono">
+              <span className="w-2 h-2 rounded-full bg-brand-500 shadow-glow" />
+              <span>
+                Agent<span className="brand-pay">Pay</span> Protocol • Non-LLM Governance & Escrow Settlement
+              </span>
             </div>
-
-            {/* Negotiation Thread Component */}
-            {selectedProductId ? (
-              <NegotiationThread
-                productId={selectedProductId}
-                initialQuantity={negotiationPreFill?.quantity}
-                initialTargetPriceInPaise={negotiationPreFill?.targetPriceInPaise}
-                initialDeliveryDays={negotiationPreFill?.requestedDeliveryDays}
-                initialNotes={negotiationPreFill?.notes}
-                onQuoteGenerated={(quote) => {
-                  console.log("Quote created:", quote);
-                }}
-              />
-            ) : (
-              <Card>
-                <p className="text-xs text-ink-400">Please seed products first by running `npm run seed` in backend directory.</p>
-              </Card>
-            )}
+            <div>Built with React, Vite, Tailwind CSS, Express, MongoDB & Socket.IO</div>
           </div>
-        )}
-      </main>
-
-      {/* Footer */}
-      <footer className="bg-white border-t border-surface-border py-6 px-8 text-center text-xs text-ink-400">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center space-x-2 font-mono">
-            <span className="w-2 h-2 rounded-full bg-brand-500" />
-            <span>AgentPay Protocol • Non-LLM Governance & Escrow Settlement</span>
-          </div>
-          <div>Built with React, Vite, Tailwind CSS, Express, MongoDB & Socket.IO</div>
-        </div>
-      </footer>
+        </footer>
+      </div>
     </div>
   );
 }

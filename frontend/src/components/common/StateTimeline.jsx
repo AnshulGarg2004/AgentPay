@@ -2,14 +2,14 @@ import { TRANSACTION_STATES } from "../../constants/transactionStates.js";
 
 const ORDERED_STEPS = [
   { key: "DISCOVERED", label: "Discovered" },
-  { key: "QUOTED", label: "Quote Generated" },
-  { key: "AGREED", label: "Terms Agreed" },
-  { key: "POLICY_EVALUATED", label: "Policy Evaluated" },
-  { key: "PAYMENT_PENDING", label: "Payment Pending" },
+  { key: "QUOTED", label: "Quoted" },
+  { key: "AGREED", label: "Agreed" },
+  { key: "POLICY_EVALUATED", label: "Policy Check" },
+  { key: "PAYMENT_PENDING", label: "Payment" },
   { key: "PAYMENT_PROCESSING", label: "Order Created" },
-  { key: "PAYMENT_VERIFICATION", label: "Escrow Verification" },
+  { key: "PAYMENT_VERIFICATION", label: "Escrow Check" },
   { key: "PAID", label: "Paid & Settled" },
-  { key: "COMPLETED", label: "Fulfillment Complete" },
+  { key: "COMPLETED", label: "Fulfilled" },
 ];
 
 export default function StateTimeline({ currentState }) {
@@ -26,50 +26,50 @@ export default function StateTimeline({ currentState }) {
   }
 
   return (
-    <div className="space-y-4 bg-white p-4 rounded-2xl border border-surface-border shadow-card">
+    <div className="space-y-4 bg-surface-alt p-4 rounded-2xl border border-surface-border shadow-card relative overflow-hidden">
       <div className="flex items-center justify-between">
-        <h4 className="text-xs font-bold uppercase tracking-wider text-ink-700">
-          AgentPay Transaction Lifecycle Protocol
+        <h4 className="text-xs font-bold uppercase tracking-wider text-ink-400">
+          AgentPay Lifecycle Protocol
         </h4>
-        <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-800">
+        <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-full bg-surface border border-surface-border text-brand-500">
           State: {currentState}
         </span>
       </div>
 
       {/* Horizontal Step Timeline */}
-      <div className="flex items-center justify-between overflow-x-auto py-2 gap-2">
+      <div className="flex items-center justify-between overflow-x-auto py-2 gap-1">
         {ORDERED_STEPS.map((step, idx) => {
           const isCompleted = activeIndex > idx || currentState === "PAID" || currentState === "COMPLETED";
           const isCurrent = step.key === currentState || (isHumanApproval && step.key === "POLICY_EVALUATED");
 
-          let dotClass = "bg-slate-200 border-slate-300 text-slate-400";
+          let dotClass = "bg-surface border-surface-border text-ink-400";
           let labelClass = "text-ink-400 font-normal";
 
           if (isCompleted) {
-            dotClass = "bg-success border-success text-white";
-            labelClass = "text-ink-900 font-semibold";
+            dotClass = "bg-success border-success text-white shadow-sm";
+            labelClass = "text-white font-semibold";
           } else if (isCurrent) {
             dotClass = isHumanApproval
               ? "bg-warning border-warning text-white ring-4 ring-warning/20 animate-pulse"
               : "bg-brand-500 border-brand-500 text-white ring-4 ring-brand-500/20 animate-pulse";
-            labelClass = "text-brand-600 font-bold";
+            labelClass = "text-brand-500 font-bold";
           }
 
           return (
-            <div key={step.key} className="flex-1 flex flex-col items-center min-w-[90px]">
+            <div key={step.key} className="flex-1 flex flex-col items-center min-w-[75px]">
               <div className="flex items-center w-full">
                 {/* Connecting Line Left */}
                 {idx > 0 && (
                   <div
                     className={`h-0.5 flex-1 transition-colors ${
-                      isCompleted || (isCurrent && idx <= activeIndex) ? "bg-success" : "bg-slate-200"
+                      isCompleted || (isCurrent && idx <= activeIndex) ? "bg-success" : "bg-surface-border"
                     }`}
                   />
                 )}
 
                 {/* Node Circle */}
                 <div
-                  className={`w-6 h-6 rounded-full border-2 flex items-center justify-center text-[10px] font-mono font-bold transition-all ${dotClass}`}
+                  className={`w-5 h-5 rounded-full border flex items-center justify-center text-[9px] font-mono font-bold transition-all ${dotClass}`}
                 >
                   {isCompleted ? "✓" : idx + 1}
                 </div>
@@ -78,7 +78,7 @@ export default function StateTimeline({ currentState }) {
                 {idx < ORDERED_STEPS.length - 1 && (
                   <div
                     className={`h-0.5 flex-1 transition-colors ${
-                      isCompleted ? "bg-success" : "bg-slate-200"
+                      isCompleted ? "bg-success" : "bg-surface-border"
                     }`}
                   />
                 )}
@@ -95,14 +95,14 @@ export default function StateTimeline({ currentState }) {
 
       {/* Side State Alerts */}
       {isHumanApproval && (
-        <div className="p-3 bg-warning-light border border-warning/40 rounded-xl text-xs text-warning-dark flex items-center space-x-2">
+        <div className="p-3 bg-warning-dark/40 border border-warning/30 rounded-xl text-xs text-warning flex items-center space-x-2">
           <span>🛡️</span>
           <span><strong>HUMAN_APPROVAL_REQUIRED</strong>: Flagged by Policy Engine. Awaiting human operations manager sign-off in Approval Queue.</span>
         </div>
       )}
 
       {(isPolicyRejected || isRejected || isFailed) && (
-        <div className="p-3 bg-danger-light border border-danger/40 rounded-xl text-xs text-danger-dark flex items-center space-x-2">
+        <div className="p-3 bg-danger-dark/40 border border-danger/30 rounded-xl text-xs text-danger flex items-center space-x-2">
           <span>❌</span>
           <span><strong>TRANSACTION STOPPED</strong>: State is {currentState}. Further processing halted.</span>
         </div>

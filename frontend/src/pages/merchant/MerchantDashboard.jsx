@@ -30,22 +30,22 @@ export default function MerchantDashboard({ onSelectTransaction }) {
   }
 
   return (
-    <div className="space-y-8 animate-slideIn">
+    <div className="space-y-8">
       {/* Header Title */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-ink-900 tracking-tight">Merchant Operations & Governance Dashboard</h1>
+          <h1 className="text-2xl font-bold text-white tracking-tight">Merchant Operations & Governance Dashboard</h1>
           <p className="text-sm text-ink-400 mt-1">Real-time revenue metrics, state distribution, and pending human governance queue.</p>
         </div>
         <button
           onClick={fetchData}
-          className="text-xs text-brand-600 font-semibold border border-brand-200 bg-white px-3 py-1.5 rounded-xl hover:bg-brand-50 shadow-sm"
+          className="text-xs text-brand-500 font-semibold border border-surface-border bg-surface-alt px-3 py-1.5 rounded-xl hover:bg-surface-border hover:text-white shadow-sm transition-all"
         >
           🔄 Refresh Analytics
         </button>
       </div>
 
-      {/* 1. StatCards Row (Section 5.4) */}
+      {/* 1. StatCards Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <StatCard
           title="Total Gross Revenue"
@@ -81,7 +81,7 @@ export default function MerchantDashboard({ onSelectTransaction }) {
         <div className="lg:col-span-6 space-y-6">
           <Card className="space-y-4">
             <div className="flex items-center justify-between border-b border-surface-border pb-3">
-              <h3 className="text-base font-bold text-ink-900">Transaction Lifecycle Distribution</h3>
+              <h3 className="text-base font-bold text-white">Transaction Lifecycle Distribution</h3>
               <span className="text-xs text-ink-400">Real-time DB Counts</span>
             </div>
 
@@ -95,9 +95,9 @@ export default function MerchantDashboard({ onSelectTransaction }) {
                       <span className="text-ink-700 flex items-center space-x-2">
                         <Badge status={state}>{state}</Badge>
                       </span>
-                      <span className="font-mono text-ink-900">{count} ({pct}%)</span>
+                      <span className="font-mono text-white">{count} ({pct}%)</span>
                     </div>
-                    <div className="w-full bg-surface-alt h-2 rounded-full overflow-hidden border border-surface-border">
+                    <div className="w-full bg-surface h-2 rounded-full overflow-hidden border border-surface-border">
                       <div
                         className="bg-brand-500 h-full rounded-full transition-all duration-500"
                         style={{ width: `${pct}%` }}
@@ -119,7 +119,7 @@ export default function MerchantDashboard({ onSelectTransaction }) {
       {/* 3. Bottom Section: Recent Transactions List */}
       <Card className="space-y-4">
         <div className="flex items-center justify-between border-b border-surface-border pb-3">
-          <h3 className="text-base font-bold text-ink-900">Recent Merchant Transactions</h3>
+          <h3 className="text-base font-bold text-white">Recent Merchant Transactions</h3>
           <span className="text-xs text-ink-400">Showing last 10 transactions</span>
         </div>
 
@@ -137,19 +137,19 @@ export default function MerchantDashboard({ onSelectTransaction }) {
             </thead>
             <tbody className="divide-y divide-surface-border">
               {transactions.map((txn) => (
-                <tr key={txn._id} className="hover:bg-surface-alt transition-colors">
-                  <td className="py-2.5 px-3 font-mono text-ink-900 font-bold">
+                <tr key={txn._id} className="hover:bg-surface-border/40 transition-colors">
+                  <td className="py-2.5 px-3 font-mono text-white font-bold">
                     #{String(txn._id).slice(-8).toUpperCase()}
                   </td>
-                  <td className="py-2.5 px-3 text-ink-900 font-semibold">
+                  <td className="py-2.5 px-3 text-white font-semibold">
                     {txn.productId?.name || "B2B Item"}
                   </td>
-                  <td className="py-2.5 px-3 font-mono font-bold text-ink-900">
+                  <td className="py-2.5 px-3 font-mono font-bold text-white">
                     {formatRupee(txn.amountInPaise)}
                   </td>
                   <td className="py-2.5 px-3 font-mono">
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
-                      txn.riskLevel === "HIGH" ? "bg-danger-light text-danger-dark" : "bg-success-light text-success-dark"
+                      txn.riskLevel === "HIGH" ? "bg-danger-dark/40 text-danger border border-danger/30" : "bg-success-dark/40 text-success border border-success/30"
                     }`}>
                       {txn.riskLevel || "LOW"} ({txn.riskScore || 0})
                     </span>
@@ -161,7 +161,7 @@ export default function MerchantDashboard({ onSelectTransaction }) {
                     {onSelectTransaction && (
                       <button
                         onClick={() => onSelectTransaction(txn._id)}
-                        className="text-xs text-brand-600 hover:text-brand-700 font-semibold"
+                        className="text-xs text-brand-500 hover:text-brand-400 font-semibold"
                       >
                         Inspect →
                       </button>

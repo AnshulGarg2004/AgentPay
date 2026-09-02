@@ -26,15 +26,15 @@ export default function QuoteExpiryTimer({ expiresAt, onExpire }) {
 
   const formattedTime = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 
-  // Color Shift Rules per design.md Section 3.9
-  let timerStyle = "bg-slate-100 text-slate-700 border-slate-200";
+  // Color Shift Rules
+  let timerStyle = "bg-surface border-surface-border text-ink-400";
 
   if (totalSeconds <= 0) {
-    timerStyle = "bg-danger-light text-danger-dark border-danger font-bold";
+    timerStyle = "bg-danger-dark/40 text-danger border-danger/30 font-bold";
   } else if (totalSeconds < 30) {
-    timerStyle = "bg-danger-light text-danger-dark border-danger animate-pulseDot font-bold";
+    timerStyle = "bg-danger-dark/40 text-danger border-danger/30 animate-pulse font-bold";
   } else if (totalSeconds < 120) {
-    timerStyle = "bg-warning-light text-warning-dark border-warning font-semibold";
+    timerStyle = "bg-warning-dark/40 text-warning border-warning/30 font-semibold";
   }
 
   return (

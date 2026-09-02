@@ -24,15 +24,15 @@ export default function AuditTrail({ transactionId }) {
   function getActorBadge(actor) {
     switch (actor) {
       case "BUYER_AGENT":
-        return { dot: "bg-brand-500", label: "Buyer Agent", badge: "bg-brand-50 text-brand-700 border-brand-200" };
+        return { dot: "bg-brand-500 shadow-glow", label: "Buyer Agent", badge: "bg-brand-500/20 text-brand-400 border-brand-500/30" };
       case "MERCHANT_AGENT":
-        return { dot: "bg-purple-500", label: "Merchant Agent", badge: "bg-purple-50 text-purple-700 border-purple-200" };
+        return { dot: "bg-purple-500", label: "Merchant Agent", badge: "bg-purple-500/20 text-purple-400 border-purple-500/30" };
       case "POLICY_ENGINE":
-        return { dot: "bg-warning", label: "Policy Engine", badge: "bg-warning-light text-warning-dark border-warning/40" };
+        return { dot: "bg-warning", label: "Policy Engine", badge: "bg-warning-dark/40 text-warning border-warning/30" };
       case "HUMAN":
-        return { dot: "bg-success", label: "Human Reviewer", badge: "bg-success-light text-success-dark border-success/40" };
+        return { dot: "bg-success", label: "Human Reviewer", badge: "bg-success-dark/40 text-success border-success/30" };
       default:
-        return { dot: "bg-slate-400", label: actor, badge: "bg-slate-100 text-slate-700 border-slate-200" };
+        return { dot: "bg-slate-400", label: actor, badge: "bg-surface border-surface-border text-ink-400" };
     }
   }
 
@@ -40,12 +40,12 @@ export default function AuditTrail({ transactionId }) {
     <Card className="space-y-4">
       <div className="flex items-center justify-between border-b border-surface-border pb-3">
         <div>
-          <h3 className="text-base font-bold text-ink-900">Immutable Governance Audit Trail</h3>
+          <h3 className="text-base font-bold text-white">Immutable Governance Audit Trail</h3>
           <p className="text-xs text-ink-400">Verifiable changelog of all agent decisions and policy evaluations</p>
         </div>
         <button
           onClick={fetchLogs}
-          className="text-xs text-brand-600 hover:text-brand-700 font-semibold border border-brand-200 px-2.5 py-1 rounded-lg hover:bg-brand-50"
+          className="text-xs text-brand-500 hover:text-brand-400 font-semibold border border-surface-border px-2.5 py-1 rounded-lg hover:bg-surface-border transition-colors"
         >
           🔄 Refresh Log
         </button>
@@ -64,7 +64,7 @@ export default function AuditTrail({ transactionId }) {
               <div key={log._id} className="relative group">
                 {/* Timeline Dot */}
                 <div
-                  className={`absolute -left-6 top-1.5 w-3 h-3 rounded-full border-2 border-white ring-2 ring-surface-border ${actorStyle.dot}`}
+                  className={`absolute -left-6 top-1.5 w-3 h-3 rounded-full border-2 border-surface-alt ring-2 ring-surface-border ${actorStyle.dot}`}
                 />
 
                 <div className="space-y-1">
@@ -72,7 +72,7 @@ export default function AuditTrail({ transactionId }) {
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded border uppercase ${actorStyle.badge}`}>
                       {actorStyle.label}
                     </span>
-                    <span className="text-xs font-bold text-ink-900">{log.action}</span>
+                    <span className="text-xs font-bold text-white">{log.action}</span>
                     <span className="text-[10px] text-ink-400 font-mono ml-auto">
                       {new Date(log.timestamp).toLocaleTimeString()}
                     </span>
@@ -85,7 +85,7 @@ export default function AuditTrail({ transactionId }) {
                   {log.result && (
                     <div className="flex items-center space-x-2 text-[10px] text-ink-400">
                       <span>Result:</span>
-                      <span className="font-semibold font-mono text-ink-900">{log.result}</span>
+                      <span className="font-semibold font-mono text-white">{log.result}</span>
                     </div>
                   )}
                 </div>

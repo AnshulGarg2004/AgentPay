@@ -44,9 +44,11 @@ export default function TransactionExplorer({ onSelectTransaction }) {
   });
 
   return (
-    <div className="space-y-6 animate-slideIn">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-ink-900 tracking-tight">AgentPay Transaction Explorer</h1>
+        <h1 className="text-2xl font-bold text-white tracking-tight">
+          Agent<span className="brand-pay">Pay</span> Transaction Explorer
+        </h1>
         <p className="text-sm text-ink-400 mt-1">
           Inspect all agent-mediated orders, policy governance evaluations, and escrow settlement states.
         </p>
@@ -62,20 +64,20 @@ export default function TransactionExplorer({ onSelectTransaction }) {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search TXN ID, Product, or Merchant..."
-              className="w-full px-3.5 py-2 rounded-xl border border-surface-border text-xs focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full px-3.5 py-2 rounded-xl border border-surface-border bg-surface text-xs text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
           </div>
 
           {/* State Filter Buttons */}
-          <div className="flex flex-wrap items-center gap-1 bg-surface-alt p-1 rounded-xl border border-surface-border">
+          <div className="flex flex-wrap items-center gap-1 bg-surface p-1 rounded-xl border border-surface-border">
             {STATE_FILTERS.map((st) => (
               <button
                 key={st}
                 onClick={() => setSelectedState(st)}
                 className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
                   selectedState === st
-                    ? "bg-white text-ink-900 shadow-sm"
-                    : "text-ink-400 hover:text-ink-900"
+                    ? "bg-brand-500 text-white shadow-sm"
+                    : "text-ink-400 hover:text-white"
                 }`}
               >
                 {st}
@@ -93,7 +95,7 @@ export default function TransactionExplorer({ onSelectTransaction }) {
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="border-b border-surface-border text-ink-400 uppercase text-[10px] font-mono bg-surface-alt">
+                <tr className="border-b border-surface-border text-ink-400 uppercase text-[10px] font-mono bg-surface">
                   <th className="py-2.5 px-3">TXN ID</th>
                   <th className="py-2.5 px-3">Product Name</th>
                   <th className="py-2.5 px-3">Merchant</th>
@@ -105,25 +107,25 @@ export default function TransactionExplorer({ onSelectTransaction }) {
               </thead>
               <tbody className="divide-y divide-surface-border">
                 {filtered.map((txn) => (
-                  <tr key={txn._id} className="hover:bg-surface-alt transition-colors">
-                    <td className="py-3 px-3 font-mono font-bold text-ink-900">
+                  <tr key={txn._id} className="hover:bg-surface-border/40 transition-colors">
+                    <td className="py-3 px-3 font-mono font-bold text-white">
                       #{String(txn._id).slice(-8).toUpperCase()}
                     </td>
-                    <td className="py-3 px-3 font-semibold text-ink-900">
+                    <td className="py-3 px-3 font-semibold text-white">
                       {txn.productId?.name || "B2B Product"}
                     </td>
                     <td className="py-3 px-3 text-ink-700">
                       {txn.merchantId?.name || "Verified Merchant"}
                     </td>
-                    <td className="py-3 px-3 font-mono font-bold text-brand-600">
+                    <td className="py-3 px-3 font-mono font-bold text-brand-500">
                       {formatRupee(txn.amountInPaise)}
                     </td>
                     <td className="py-3 px-3 font-mono">
                       <span
                         className={`text-[10px] font-bold px-2 py-0.5 rounded ${
                           txn.riskLevel === "HIGH"
-                            ? "bg-danger-light text-danger-dark"
-                            : "bg-success-light text-success-dark"
+                            ? "bg-danger-dark/40 text-danger border border-danger/30"
+                            : "bg-success-dark/40 text-success border border-success/30"
                         }`}
                       >
                         {txn.riskLevel || "LOW"} ({txn.riskScore || 0}/100)
@@ -135,7 +137,7 @@ export default function TransactionExplorer({ onSelectTransaction }) {
                     <td className="py-3 px-3 text-right">
                       <button
                         onClick={() => onSelectTransaction && onSelectTransaction(txn._id)}
-                        className="px-3 py-1 bg-brand-50 border border-brand-200 text-brand-700 font-semibold rounded-lg hover:bg-brand-100 text-xs transition-all shadow-sm"
+                        className="px-3 py-1 bg-surface-alt border border-surface-border text-brand-500 font-semibold rounded-lg hover:bg-surface-border hover:text-white text-xs transition-all shadow-sm"
                       >
                         Inspect Detail →
                       </button>
