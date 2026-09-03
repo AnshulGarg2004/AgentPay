@@ -106,25 +106,25 @@ export default function BuyerConsole({ onInitiateNegotiation }) {
       </div>
 
       {/* Main Conversational Chat Container */}
-      <Card className="flex flex-col h-[640px] p-0 overflow-hidden border border-surface-border shadow-card">
+      <Card className="flex flex-col h-[560px] sm:h-[640px] p-0 overflow-hidden border border-surface-border shadow-card">
         {/* Chat Header Bar */}
-        <div className="bg-surface-alt border-b border-surface-border px-6 py-3.5 flex items-center justify-between">
+        <div className="bg-surface-alt border-b border-surface-border px-4 sm:px-6 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-500 to-glow-cyan text-white font-bold flex items-center justify-center text-sm shadow-sm">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-500 to-glow-cyan text-white font-bold flex items-center justify-center text-sm shadow-sm shrink-0">
               🤖
             </div>
             <div>
-              <h3 className="text-sm font-bold text-white">EscrowAI Autonomous Procurement Assistant</h3>
-              <p className="text-[11px] text-ink-400 font-mono">buyerIntentAgent • merchantAgent • Real Mongo Catalog</p>
+              <h3 className="text-sm font-bold text-white leading-tight">EscrowAI Autonomous Procurement Assistant</h3>
+              <p className="text-[10px] sm:text-[11px] text-ink-400 font-mono">buyerIntentAgent • merchantAgent • Real Mongo Catalog</p>
             </div>
           </div>
-          <span className="text-[10px] text-brand-500 bg-brand-500/10 border border-brand-500/30 px-2.5 py-1 rounded-full font-semibold font-mono">
+          <span className="self-start sm:self-auto text-[10px] text-brand-500 bg-brand-500/10 border border-brand-500/30 px-2.5 py-1 rounded-full font-semibold font-mono shrink-0">
             ● READY FOR INQUIRIES
           </span>
         </div>
 
         {/* Message Scrollable Body */}
-        <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-6 space-y-6 bg-surface">
+        <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-3.5 sm:p-6 space-y-4 sm:space-y-6 bg-surface">
           <AnimatePresence initial={false}>
             {messages.map((msg) => (
               <motion.div
@@ -137,7 +137,7 @@ export default function BuyerConsole({ onInitiateNegotiation }) {
                 {/* Human Buyer Message */}
                 {msg.sender === "HUMAN" && (
                   <div className="flex justify-end">
-                    <div className="max-w-xl bg-gradient-to-r from-brand-600 to-brand-500 text-white p-4 rounded-2xl rounded-tr-none shadow-md space-y-1">
+                    <div className="max-w-full sm:max-w-xl bg-gradient-to-r from-brand-600 to-brand-500 text-white p-3.5 sm:p-4 rounded-2xl rounded-tr-none shadow-md space-y-1">
                       <div className="flex items-center justify-between text-[10px] text-brand-100 font-mono">
                         <span>HUMAN BUYER</span>
                         <span>{new Date(msg.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
@@ -150,7 +150,7 @@ export default function BuyerConsole({ onInitiateNegotiation }) {
                 {/* System Welcome Message */}
                 {msg.sender === "AGENT" && msg.type === "SYSTEM_WELCOME" && (
                   <div className="flex justify-start">
-                    <div className="max-w-2xl bg-surface-alt border border-surface-border p-4 rounded-2xl rounded-tl-none shadow-sm space-y-2">
+                    <div className="max-w-full sm:max-w-2xl bg-surface-alt border border-surface-border p-3.5 sm:p-4 rounded-2xl rounded-tl-none shadow-sm space-y-2">
                       <div className="flex items-center space-x-2 text-[10px] text-brand-500 font-mono font-bold">
                         <span>🤖 BUYER AGENT</span>
                       </div>
@@ -162,7 +162,7 @@ export default function BuyerConsole({ onInitiateNegotiation }) {
                 {/* Error Message */}
                 {msg.sender === "AGENT" && msg.type === "ERROR" && (
                   <div className="flex justify-start">
-                    <div className="max-w-2xl bg-danger-dark/40 border border-danger/30 text-danger p-4 rounded-2xl rounded-tl-none shadow-sm">
+                    <div className="max-w-full sm:max-w-2xl bg-danger-dark/40 border border-danger/30 text-danger p-3.5 sm:p-4 rounded-2xl rounded-tl-none shadow-sm">
                       <p className="text-sm font-semibold">{msg.text}</p>
                     </div>
                   </div>
@@ -171,11 +171,11 @@ export default function BuyerConsole({ onInitiateNegotiation }) {
                 {/* Agent Search Results Message */}
                 {msg.sender === "AGENT" && msg.type === "SEARCH_RESULTS" && (
                   <div className="flex justify-start space-y-3 w-full">
-                    <div className="w-full max-w-3xl bg-surface-alt border border-surface-border p-5 rounded-2xl rounded-tl-none shadow-sm space-y-4">
+                    <div className="w-full max-w-3xl bg-surface-alt border border-surface-border p-3.5 sm:p-5 rounded-2xl rounded-tl-none shadow-sm space-y-4">
                       {/* Header */}
-                      <div className="flex items-center justify-between border-b border-surface-border pb-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-surface-border pb-3">
                         <div className="flex items-center space-x-2">
-                          <span className="w-2.5 h-2.5 rounded-full bg-brand-500 shadow-glow inline-block animate-pulseDot" />
+                          <span className="w-2.5 h-2.5 rounded-full bg-brand-500 shadow-glow inline-block animate-pulseDot shrink-0" />
                           <span className="text-xs font-bold text-white uppercase tracking-wide font-mono">
                             Agent Intent Analysis & Catalog Match
                           </span>
@@ -191,17 +191,17 @@ export default function BuyerConsole({ onInitiateNegotiation }) {
                           <div className="text-[11px] font-bold text-brand-500 uppercase tracking-wide font-mono">
                             Parsed Intent (Structured JSON):
                           </div>
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-mono">
-                            <span className="bg-surface-alt border border-surface-border px-2 py-0.5 rounded">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 text-xs font-mono">
+                            <span className="bg-surface-alt border border-surface-border px-2 py-1 rounded truncate">
                               Category: <strong>{msg.intent.category || "all"}</strong>
                             </span>
-                            <span className="bg-surface-alt border border-surface-border px-2 py-0.5 rounded">
+                            <span className="bg-surface-alt border border-surface-border px-2 py-1 rounded truncate">
                               Qty: <strong>{msg.intent.quantity} units</strong>
                             </span>
-                            <span className="bg-surface-alt border border-surface-border px-2 py-0.5 rounded">
+                            <span className="bg-surface-alt border border-surface-border px-2 py-1 rounded truncate">
                               Max Price: <strong>{msg.intent.maxUnitPriceInPaise ? formatRupee(msg.intent.maxUnitPriceInPaise) : "Any"}</strong>
                             </span>
-                            <span className="bg-surface-alt border border-surface-border px-2 py-0.5 rounded">
+                            <span className="bg-surface-alt border border-surface-border px-2 py-1 rounded truncate">
                               Deadline: <strong>{msg.intent.deliveryDeadline ? `${msg.intent.deliveryDeadline} days` : "Any"}</strong>
                             </span>
                           </div>
@@ -224,7 +224,7 @@ export default function BuyerConsole({ onInitiateNegotiation }) {
                             return (
                               <div
                                 key={p._id || idx}
-                                className="p-4 bg-surface border border-surface-border rounded-xl shadow-sm space-y-3 hover:border-brand-500/40 transition-colors"
+                                className="p-3.5 sm:p-4 bg-surface border border-surface-border rounded-xl shadow-sm space-y-3 hover:border-brand-500/40 transition-colors"
                               >
                                 {/* Product Header */}
                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -234,7 +234,7 @@ export default function BuyerConsole({ onInitiateNegotiation }) {
                                       Merchant: <strong className="text-ink-700">{p.merchantId?.name || "Verified Merchant"}</strong>
                                     </p>
                                   </div>
-                                  <div className="text-right">
+                                  <div className="text-left sm:text-right">
                                     <span className="text-lg font-extrabold text-brand-500 font-mono block">
                                       {formatRupee(p.priceInPaise)} / unit
                                     </span>
@@ -247,7 +247,7 @@ export default function BuyerConsole({ onInitiateNegotiation }) {
                                 </div>
 
                                 {/* Badges Ribbon */}
-                                <div className="flex flex-wrap items-center gap-3 text-xs border-y border-surface-border py-2">
+                                <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs border-y border-surface-border py-2">
                                   <span className="font-mono text-ink-700">
                                     📦 Stock: <strong>{p.inventory} available</strong>
                                   </span>
@@ -266,10 +266,11 @@ export default function BuyerConsole({ onInitiateNegotiation }) {
                                 </div>
 
                                 {/* Action Button */}
-                                <div className="flex justify-end pt-1">
+                                <div className="flex justify-start sm:justify-end pt-1">
                                   <Button
                                     variant="primary"
                                     size="sm"
+                                    className="w-full sm:w-auto justify-center"
                                     onClick={() => {
                                       if (onInitiateNegotiation) {
                                         onInitiateNegotiation({
@@ -304,20 +305,18 @@ export default function BuyerConsole({ onInitiateNegotiation }) {
               animate={{ opacity: 1, y: 0 }}
               className="flex justify-start"
             >
-              <div className="bg-surface-alt border border-surface-border p-4 rounded-2xl rounded-tl-none shadow-sm flex items-center space-x-3">
-                <span className="w-2.5 h-2.5 rounded-full bg-brand-500 animate-ping" />
+              <div className="bg-surface-alt border border-surface-border p-3.5 sm:p-4 rounded-2xl rounded-tl-none shadow-sm flex items-center space-x-3">
+                <span className="w-2.5 h-2.5 rounded-full bg-brand-500 animate-ping shrink-0" />
                 <span className="text-xs text-ink-400 font-mono animate-pulse">
                   Buyer & Merchant AI Agents parsing intent and ranking Mongo catalog matches...
                 </span>
               </div>
             </motion.div>
           )}
-
-
         </div>
 
         {/* Quick Prompts & Chat Input Form Footer */}
-        <div className="bg-surface-alt border-t border-surface-border p-4 space-y-3">
+        <div className="bg-surface-alt border-t border-surface-border p-3 sm:p-4 space-y-3">
           {/* Quick Demo Prompts */}
           <div className="flex items-center space-x-2 overflow-x-auto pb-1 no-scrollbar">
             <span className="text-ink-400 text-[10px] font-bold uppercase shrink-0 font-mono">Demo Examples:</span>
@@ -325,7 +324,7 @@ export default function BuyerConsole({ onInitiateNegotiation }) {
               <button
                 key={i}
                 onClick={() => setPromptInput(qp)}
-                className="px-2.5 py-1 rounded-lg bg-surface hover:bg-surface-border border border-surface-border text-ink-700 hover:text-white whitespace-nowrap text-[11px] transition-all duration-150 hover:scale-[1.02] hover:-translate-y-0.5 hover:border-slate-500/40 hover:shadow-sm font-medium"
+                className="px-2.5 py-1 rounded-lg bg-surface hover:bg-surface-border border border-surface-border text-ink-700 hover:text-white whitespace-nowrap text-[11px] transition-all duration-150 hover:scale-[1.02] hover:-translate-y-0.5 hover:border-slate-500/40 hover:shadow-sm font-medium shrink-0"
               >
                 "{qp}"
               </button>
@@ -333,8 +332,8 @@ export default function BuyerConsole({ onInitiateNegotiation }) {
           </div>
 
           {/* Input Textarea & Send Button */}
-          <form onSubmit={handleSubmit} className="flex items-end gap-3">
-            <div className="flex-1 relative">
+          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row items-stretch sm:items-end gap-2.5 sm:gap-3">
+            <div className="flex-1 space-y-1">
               <textarea
                 value={promptInput}
                 onChange={(e) => setPromptInput(e.target.value)}
@@ -344,9 +343,11 @@ export default function BuyerConsole({ onInitiateNegotiation }) {
                 disabled={isLoading}
                 className="w-full p-3 rounded-xl border border-surface-border bg-surface text-xs text-white focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:bg-surface-alt resize-none shadow-inner"
               />
-              <span className="absolute right-3 bottom-2 text-[10px] text-ink-400 font-mono">
-                Press Enter to send (Shift+Enter for newline)
-              </span>
+              <div className="hidden sm:flex justify-end">
+                <span className="text-[10px] text-ink-400 font-mono">
+                  Press Enter to send (Shift+Enter for newline)
+                </span>
+              </div>
             </div>
 
             <Button
@@ -354,7 +355,7 @@ export default function BuyerConsole({ onInitiateNegotiation }) {
               variant="primary"
               size="md"
               disabled={isLoading || !promptInput.trim()}
-              className="h-11 shrink-0 px-5"
+              className="h-11 w-full sm:w-auto shrink-0 px-5 flex items-center justify-center"
             >
               {isLoading ? "Analyzing..." : "Send Request 🚀"}
             </Button>

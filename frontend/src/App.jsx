@@ -275,10 +275,10 @@ export default function App() {
         </main>
 
         {/* Footer */}
-        <footer className="bg-surface border-t border-surface-border py-6 px-8 text-center text-xs text-ink-400">
+        <footer className="bg-surface border-t border-surface-border py-4 sm:py-6 px-4 sm:px-8 text-center text-xs text-ink-400">
           <div className="max-w-7xl mx-auto flex items-center justify-center font-mono">
-            <div className="flex items-center space-x-2">
-              <span className="w-2 h-2 rounded-full bg-brand-500 shadow-glow" />
+            <div className="flex flex-col sm:flex-row items-center space-y-1 sm:space-y-0 sm:space-x-2 text-center">
+              <span className="w-2 h-2 rounded-full bg-brand-500 shadow-glow shrink-0 hidden sm:inline-block" />
               <span>
                 Escrow<span className="brand-pay">AI</span> Protocol • Autonomous AI Governance & Escrow Settlement
               </span>

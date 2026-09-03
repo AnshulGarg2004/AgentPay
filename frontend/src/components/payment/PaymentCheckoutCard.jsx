@@ -215,15 +215,29 @@ export default function PaymentCheckoutCard({ transaction, onStateUpdated }) {
           </div>
         </div>
 
-        {/* Idempotency Key Banner */}
-        <div className="p-3 bg-surface border border-surface-border rounded-xl flex items-center justify-between text-xs font-mono">
-          <div>
-            <span className="text-ink-400 block text-[10px] uppercase font-sans">Active Idempotency Guarantee Key</span>
-            <span className="text-brand-500 font-semibold">{idempotencyKey}</span>
+        {/* Idempotency Protection Guarantee Banner */}
+        <div className="p-3 bg-surface border border-surface-border rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center space-x-2.5 overflow-hidden">
+            <div className="w-7 h-7 rounded-lg bg-brand-500/10 border border-brand-500/30 flex items-center justify-center text-brand-400 shrink-0 text-xs">
+              🛡️
+            </div>
+            <div className="min-w-0">
+              <span className="text-ink-400 block text-[10px] uppercase font-mono tracking-wider">
+                Idempotency Protocol Guarantee
+              </span>
+              <div className="flex items-center space-x-1.5 font-mono text-xs text-brand-400">
+                <span className="truncate max-w-[210px] sm:max-w-xs font-semibold" title={idempotencyKey}>
+                  {idempotencyKey}
+                </span>
+              </div>
+            </div>
           </div>
-          <span className="text-[10px] bg-brand-500/20 text-brand-400 px-2 py-0.5 rounded border border-brand-500/30">
-            MongoDB Unique Index Dedupe Active
-          </span>
+          <div className="flex items-center space-x-2 shrink-0 self-start sm:self-auto">
+            <span className="text-[10px] font-mono bg-emerald-500/10 text-emerald-400 px-2.5 py-1 rounded-full border border-emerald-500/30 flex items-center gap-1.5 whitespace-nowrap">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Mongo Dedupe Active
+            </span>
+          </div>
         </div>
 
         {/* Action Panel based on state */}
@@ -278,7 +292,7 @@ export default function PaymentCheckoutCard({ transaction, onStateUpdated }) {
               </div>
 
               <div className="p-3 bg-surface rounded-xl border border-warning/30 text-xs text-ink-400 font-mono space-y-1">
-                <div>• Idempotency Key: {idempotencyKey}</div>
+                <div className="break-all">• Idempotency Key: {idempotencyKey}</div>
                 <div>• Retry attempt blocked: Will return cached IN_PROGRESS response instead of re-charging Razorpay</div>
               </div>
 

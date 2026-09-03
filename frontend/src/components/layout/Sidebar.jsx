@@ -41,7 +41,7 @@ export default function Sidebar({ activeTab, onNavigate, mobileOpen = false, onC
             onNavigate("home");
             if (onCloseMobile) onCloseMobile();
           }}
-          className="flex items-center space-x-3 px-3 pb-6 border-b border-surface-border cursor-pointer hover:opacity-90 transition-opacity group"
+          className="flex items-center space-x-3 md:justify-center lg:justify-start md:space-x-0 lg:space-x-3 px-3 pb-6 border-b border-surface-border cursor-pointer hover:opacity-90 transition-opacity group"
           title="Go to Home"
         >
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 via-glow-cyan to-glow-rose p-0.5 shadow-sm flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
@@ -49,7 +49,7 @@ export default function Sidebar({ activeTab, onNavigate, mobileOpen = false, onC
               <Zap className="w-5 h-5 text-brand-500 fill-brand-500/20" />
             </div>
           </div>
-          <div className="hidden lg:block overflow-hidden">
+          <div className="block md:hidden lg:block overflow-hidden">
             <span className="text-xl font-bold text-white tracking-tight block">
               Escrow<span className="brand-pay">AI</span>
             </span>
@@ -81,7 +81,7 @@ export default function Sidebar({ activeTab, onNavigate, mobileOpen = false, onC
                   onNavigate(item.id);
                   if (onCloseMobile) onCloseMobile();
                 }}
-                className={`relative w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-colors duration-150 group ${
+                className={`relative w-full flex items-center space-x-3 md:justify-center lg:justify-start md:space-x-0 lg:space-x-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-colors duration-150 group ${
                   active ? "text-white" : "text-ink-400 hover:text-ink-700 hover:bg-white/5"
                 }`}
               >
@@ -103,8 +103,8 @@ export default function Sidebar({ activeTab, onNavigate, mobileOpen = false, onC
                   </>
                 )}
 
-                <Icon className={`w-4 h-4 z-10 transition-transform group-hover:scale-110 ${active ? "text-brand-500" : "text-ink-400"}`} />
-                <span className="hidden lg:inline z-10 tracking-wide">{item.label}</span>
+                <Icon className={`w-4 h-4 z-10 transition-transform group-hover:scale-110 shrink-0 ${active ? "text-brand-500" : "text-ink-400"}`} />
+                <span className="inline md:hidden lg:inline z-10 tracking-wide">{item.label}</span>
               </button>
             );
           })}
@@ -113,7 +113,7 @@ export default function Sidebar({ activeTab, onNavigate, mobileOpen = false, onC
 
       {/* Footer Info */}
       <div className="pt-4 border-t border-surface-border px-3 text-center lg:text-left">
-        <div className="hidden lg:flex items-center space-x-2 text-[11px] font-mono text-ink-400">
+        <div className="flex md:hidden lg:flex items-center space-x-2 text-[11px] font-mono text-ink-400">
           <span className="w-2 h-2 rounded-full bg-success shadow-sm animate-pulse" />
           <span>Protocol Active</span>
         </div>

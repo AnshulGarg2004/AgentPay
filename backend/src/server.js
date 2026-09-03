@@ -12,9 +12,8 @@ async function start() {
   const io = new Server(server, { cors: { origin: "*" } });
 
   setupLiveActivityGateway(io);
-  app.set("io", io); // access via req.app.get("io") in controllers
+  app.set("io", io);
 
-  // Handle server errors cleanly BEFORE calling listen
   server.on("error", (err) => {
     if (err.code === "EADDRINUSE") {
       console.error(`\n❌ [EscrowAI Server] Port ${PORT} is currently occupied by another process.`);
@@ -27,7 +26,7 @@ async function start() {
   });
 
   server.listen(PORT, () => {
-    console.log(`🚀 EscrowAI backend running on http://localhost:${PORT}`);
+    console.log(`🚀 EscrowAI backend running successfully`);
   });
 
   // Connect DB in background without blocking server listen
