@@ -34,23 +34,33 @@ export default function Sidebar({ activeTab, onNavigate, mobileOpen = false, onC
 
   const sidebarContent = (
     <div className="h-full flex flex-col justify-between bg-surface border-r border-surface-border py-5 px-3">
-      {/* Header Logo */}
+      {/* Header Logo (Clicking EscrowAI navigates to Home) */}
       <div>
-        <div className="flex items-center space-x-3 px-3 pb-6 border-b border-surface-border">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 via-glow-cyan to-glow-rose p-0.5 shadow-glow flex items-center justify-center shrink-0">
+        <div
+          onClick={() => {
+            onNavigate("home");
+            if (onCloseMobile) onCloseMobile();
+          }}
+          className="flex items-center space-x-3 px-3 pb-6 border-b border-surface-border cursor-pointer hover:opacity-90 transition-opacity group"
+          title="Go to Home"
+        >
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 via-glow-cyan to-glow-rose p-0.5 shadow-sm flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
             <div className="w-full h-full bg-surface rounded-[10px] flex items-center justify-center">
               <Zap className="w-5 h-5 text-brand-500 fill-brand-500/20" />
             </div>
           </div>
           <div className="hidden lg:block overflow-hidden">
             <span className="text-xl font-bold text-white tracking-tight block">
-              Agent<span className="brand-pay">Pay</span>
+              Escrow<span className="brand-pay">AI</span>
             </span>
             <span className="text-[10px] text-ink-400 font-mono block -mt-0.5 tracking-wider">ESCROW PROTOCOL</span>
           </div>
           {mobileOpen && (
             <button
-              onClick={onCloseMobile}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onCloseMobile) onCloseMobile();
+              }}
               className="ml-auto md:hidden p-1.5 rounded-lg text-ink-400 hover:text-white hover:bg-white/5"
             >
               <X className="w-5 h-5" />

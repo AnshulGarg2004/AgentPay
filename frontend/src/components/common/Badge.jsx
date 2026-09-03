@@ -1,20 +1,32 @@
-export default function Badge({ children, status = "default", className = "" }) {
+export default function Badge({ children, status = "default", className = "", pulse = false }) {
   const normalizedStatus = String(status).toUpperCase();
 
-  let colorClasses = "bg-surface-border text-ink-400 border border-surface-border"; // default
+  let colorClasses = "bg-surface-border/60 text-ink-400 border border-surface-border"; // default
+  let dotColor = "bg-ink-400";
 
   if (["PAID", "COMPLETED", "VERIFIED", "SUCCESS"].includes(normalizedStatus)) {
-    colorClasses = "bg-success-dark/40 text-success border border-success/30";
+    colorClasses = "bg-emerald-950/60 text-emerald-400 border border-emerald-800/40";
+    dotColor = "bg-emerald-400";
   } else if (["AGREED", "RESERVED", "PAYMENT_PENDING", "PENDING"].includes(normalizedStatus)) {
-    colorClasses = "bg-warning-dark/40 text-warning border border-warning/30";
-  } else if (["PAYMENT_FAILED", "QUOTE_EXPIRED", "POLICY_REJECTED", "DISPUTED", "FAILED", "REJECTED"].includes(normalizedStatus)) {
-    colorClasses = "bg-danger-dark/40 text-danger border border-danger/30";
+    colorClasses = "bg-amber-950/60 text-amber-400 border border-amber-800/40";
+    dotColor = "bg-amber-400";
+  } else if (
+    ["PAYMENT_FAILED", "QUOTE_EXPIRED", "POLICY_REJECTED", "DISPUTED", "FAILED", "REJECTED"].includes(normalizedStatus)
+  ) {
+    colorClasses = "bg-rose-950/60 text-rose-400 border border-rose-800/40";
+    dotColor = "bg-rose-400";
   } else if (["HUMAN_APPROVAL_REQUIRED", "BRAND", "INFO"].includes(normalizedStatus)) {
-    colorClasses = "bg-brand-500/20 text-brand-500 border border-brand-500/30";
+    colorClasses = "bg-indigo-950/60 text-indigo-300 border border-indigo-800/40";
+    dotColor = "bg-indigo-400";
   }
 
   return (
-    <span className={`inline-flex items-center justify-center whitespace-nowrap shrink-0 px-3 py-1 rounded-full text-xs font-semibold font-mono tracking-wide ${colorClasses} ${className}`}>
+    <span
+      className={`inline-flex items-center justify-center whitespace-nowrap shrink-0 px-2.5 py-0.5 rounded-md text-[11px] font-semibold font-mono tracking-wide ${colorClasses} ${className}`}
+    >
+      {(pulse || ["PAYMENT_PENDING", "PENDING", "HUMAN_APPROVAL_REQUIRED"].includes(normalizedStatus)) && (
+        <span className={`w-1.5 h-1.5 rounded-full ${dotColor} animate-pulseDot mr-1.5 shrink-0`} />
+      )}
       {children || status}
     </span>
   );

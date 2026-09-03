@@ -19,12 +19,9 @@ import { socket } from "./lib/socket.js";
 import { formatRupee } from "./lib/format.js";
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState(() => {
-    const saved = localStorage.getItem("agentpay_active_tab");
-    return saved || "buyer-console";
-  });
+  const [activeTab, setActiveTab] = useState("home");
   const [selectedTxnId, setSelectedTxnId] = useState(() => {
-    return localStorage.getItem("agentpay_selected_txn_id") || null;
+    return localStorage.getItem("escrowai_selected_txn_id") || null;
   });
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
@@ -39,15 +36,16 @@ export default function App() {
   // Sync activeTab & selectedTxnId to localStorage
   useEffect(() => {
     if (activeTab) {
-      localStorage.setItem("agentpay_active_tab", activeTab);
+      localStorage.setItem("escrowai_active_tab", activeTab);
+      window.scrollTo(0, 0);
     }
   }, [activeTab]);
 
   useEffect(() => {
     if (selectedTxnId) {
-      localStorage.setItem("agentpay_selected_txn_id", selectedTxnId);
+      localStorage.setItem("escrowai_selected_txn_id", selectedTxnId);
     } else {
-      localStorage.removeItem("agentpay_selected_txn_id");
+      localStorage.removeItem("escrowai_selected_txn_id");
     }
   }, [selectedTxnId]);
 
@@ -282,7 +280,7 @@ export default function App() {
             <div className="flex items-center space-x-2">
               <span className="w-2 h-2 rounded-full bg-brand-500 shadow-glow" />
               <span>
-                Agent<span className="brand-pay">Pay</span> Protocol • Autonomous AI Governance & Escrow Settlement
+                Escrow<span className="brand-pay">AI</span> Protocol • Autonomous AI Governance & Escrow Settlement
               </span>
             </div>
           </div>

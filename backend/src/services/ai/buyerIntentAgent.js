@@ -144,7 +144,7 @@ export async function parseBuyerIntent(promptText) {
     for (const modelCandidate of modelCandidates) {
       try {
         const systemPrompt = `
-You are the AgentPay Buyer Intent AI Agent. Your ONLY job is to convert messy human natural-language purchasing requests into a strict structured JSON intent schema.
+You are the EscrowAI Buyer Intent AI Agent. Your ONLY job is to convert messy human natural-language purchasing requests into a strict structured JSON intent schema.
 
 Output Schema strictly as JSON:
 {

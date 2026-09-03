@@ -1,4 +1,4 @@
-# AgentPay — Complete Build Plan
+# EscrowAI — Complete Build Plan
 ### The Trust & Transaction Layer for AI-Native Commerce
 **Track 01 — AI Growth & Agentic Commerce | Razorpay Hackathon**
 
@@ -41,7 +41,7 @@ AI Buyer Agent · AI Merchant Agent · AI-readable catalog · Product discovery 
 ## 3. Monorepo Folder Structure
 
 ```
-agentpay/
+escrowai/
 ├── README.md
 ├── .gitignore
 ├── .env.example
@@ -562,8 +562,8 @@ Do not proceed to the next phase until the current one runs end-to-end locally.
 
 **backend/.env.example**
 ```
-MONGODB_URI=mongodb://localhost:27017/agentpay
-# or a free Atlas cluster: mongodb+srv://<user>:<pass>@cluster.mongodb.net/agentpay
+MONGODB_URI=mongodb://localhost:27017/escrowai
+# or a free Atlas cluster: mongodb+srv://<user>:<pass>@cluster.mongodb.net/escrowai
 RAZORPAY_KEY_ID=rzp_test_xxxxx
 RAZORPAY_KEY_SECRET=xxxxx
 RAZORPAY_WEBHOOK_SECRET=xxxxx
@@ -601,6 +601,6 @@ Rehearse exactly this path once the MVP is done — don't demo anything outside 
 ## 13. One-liners for judge Q&A (keep handy)
 
 - **vs ChatGPT Shopping:** "We're merchant-side infrastructure for agent-to-agent transactions, not a shopping recommender."
-- **vs a payment gateway:** "A gateway moves money after a decision is made. AgentPay governs discovery, negotiation, policy, and recovery — before, during, and after payment."
+- **vs a payment gateway:** "A gateway moves money after a decision is made. EscrowAI governs discovery, negotiation, policy, and recovery — before, during, and after payment."
 - **What's actually AI vs deterministic:** AI = intent parsing, matching, negotiation language, explanations. Deterministic = money, policy, limits, state transitions, idempotency, audit.
 - **Why no Redis/Docker:** MongoDB's TTL indexes and unique-index constraints cover idempotency, reservation expiry, and webhook dedupe natively — one fewer moving part to explain or debug live during judging.

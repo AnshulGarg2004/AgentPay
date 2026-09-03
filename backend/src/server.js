@@ -17,7 +17,7 @@ async function start() {
   // Handle server errors cleanly BEFORE calling listen
   server.on("error", (err) => {
     if (err.code === "EADDRINUSE") {
-      console.error(`\n❌ [AgentPay Server] Port ${PORT} is currently occupied by another process.`);
+      console.error(`\n❌ [EscrowAI Server] Port ${PORT} is currently occupied by another process.`);
       console.error(`💡 Solution: Run 'taskkill /F /IM node.exe' (Windows) or 'npx kill-port ${PORT}' to free port ${PORT}.\n`);
       process.exit(1);
     } else {
@@ -27,7 +27,7 @@ async function start() {
   });
 
   server.listen(PORT, () => {
-    console.log(`🚀 AgentPay backend running on http://localhost:${PORT}`);
+    console.log(`🚀 EscrowAI backend running on http://localhost:${PORT}`);
   });
 
   // Connect DB in background without blocking server listen

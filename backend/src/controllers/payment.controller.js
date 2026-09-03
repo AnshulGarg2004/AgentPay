@@ -215,13 +215,13 @@ export async function initiatePayment(req, res, next) {
         await transitionTo(txn._id, "PAYMENT_VERIFICATION", {
           io,
           actor: "POLICY_ENGINE",
-          reason: "Payment request timed out. AgentPay protocol locked state in PAYMENT_VERIFICATION to prevent double-charging.",
+          reason: "Payment request timed out. EscrowAI protocol locked state in PAYMENT_VERIFICATION to prevent double-charging.",
         });
       }
 
       const timeoutResponse = {
         status: "TIMEOUT_WAITING_WEBHOOK",
-        message: "Payment request timed out. AgentPay protocol locked state in PAYMENT_VERIFICATION — awaiting Razorpay webhook confirmation without double-charging.",
+        message: "Payment request timed out. EscrowAI protocol locked state in PAYMENT_VERIFICATION — awaiting Razorpay webhook confirmation without double-charging.",
         transactionId: txn._id,
         state: txn.state,
         idempotencyKey: key,

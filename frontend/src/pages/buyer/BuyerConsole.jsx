@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import Card from "../../components/common/Card.jsx";
 import Button from "../../components/common/Button.jsx";
 import { formatRupee } from "../../lib/format.js";
@@ -19,15 +20,21 @@ export default function BuyerConsole({ onInitiateNegotiation }) {
       id: "welcome",
       sender: "AGENT",
       type: "SYSTEM_WELCOME",
-      text: "Hello! I am your AgentPay Buyer Agent. Describe what products you need in natural English (e.g. quantity, budget, specifications, delivery deadline), and I will analyze your intent and rank matching catalog items for negotiation.",
+      text: "Hello! I am your EscrowAI Buyer Agent. Describe what products you need in natural English (e.g. quantity, budget, specifications, delivery deadline), and I will analyze your intent and rank matching catalog items for negotiation.",
       timestamp: new Date(),
     },
   ]);
 
-  const chatEndRef = useRef(null);
+  const chatContainerRef = useRef(null);
 
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    window.scrollTo(0, 0);
+  }, []);
+
+  useEffect(() => {
+    if (chatContainerRef.current && messages.length > 1) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
   }, [messages, isLoading]);
 
   async function handleSubmit(e) {
@@ -65,12 +72,12 @@ export default function BuyerConsole({ onInitiateNegotiation }) {
 
       setMessages((prev) => [...prev, agentMessage]);
     } catch (err) {
-      console.error("Buyer Console search error:", err);
+      console.error("Search API error:", err);
       const errorMessage = {
         id: `err_${Date.now()}`,
         sender: "AGENT",
         type: "ERROR",
-        text: `Sorry, I encountered an issue analyzing your request: ${err.response?.data?.error || err.message}`,
+        text: "Failed to connect to Buyer Intent AI agent or process query: " + (err.response?.data?.error || err.message),
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorMessage]);
@@ -87,11 +94,11 @@ export default function BuyerConsole({ onInitiateNegotiation }) {
   }
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto">
+    <div className="max-w-5xl mx-auto space-y-6">
       {/* Header Banner */}
       <div>
         <h1 className="text-2xl font-bold text-white tracking-tight">
-          Agent<span className="brand-pay">Pay</span> Buyer Console
+          Escrow<span className="brand-pay">AI</span> Buyer Console
         </h1>
         <p className="text-sm text-ink-400 mt-1">
           Describe your B2B procurement needs in plain English. Our Buyer & Merchant agents parse structured intent, query real inventory, and prepare terms for negotiation.
@@ -107,7 +114,7 @@ export default function BuyerConsole({ onInitiateNegotiation }) {
               🤖
             </div>
             <div>
-              <h3 className="text-sm font-bold text-white">AgentPay Autonomous Procurement Assistant</h3>
+              <h3 className="text-sm font-bold text-white">EscrowAI Autonomous Procurement Assistant</h3>
               <p className="text-[11px] text-ink-400 font-mono">buyerIntentAgent • merchantAgent • Real Mongo Catalog</p>
             </div>
           </div>
@@ -117,207 +124,208 @@ export default function BuyerConsole({ onInitiateNegotiation }) {
         </div>
 
         {/* Message Scrollable Body */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-surface">
-          {messages.map((msg) => (
-            <div key={msg.id} className="space-y-3">
-              {/* Human Buyer Message */}
-              {msg.sender === "HUMAN" && (
-                <div className="flex justify-end">
-                  <div className="max-w-xl bg-gradient-to-r from-brand-600 to-brand-500 text-white p-4 rounded-2xl rounded-tr-none shadow-sm space-y-1">
-                    <div className="flex items-center justify-between text-[10px] text-brand-100 font-mono">
-                      <span>HUMAN BUYER</span>
-                      <span>{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+        <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-6 space-y-6 bg-surface">
+          <AnimatePresence initial={false}>
+            {messages.map((msg) => (
+              <motion.div
+                key={msg.id}
+                initial={{ opacity: 0, y: 12, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
+                className="space-y-3"
+              >
+                {/* Human Buyer Message */}
+                {msg.sender === "HUMAN" && (
+                  <div className="flex justify-end">
+                    <div className="max-w-xl bg-gradient-to-r from-brand-600 to-brand-500 text-white p-4 rounded-2xl rounded-tr-none shadow-md space-y-1">
+                      <div className="flex items-center justify-between text-[10px] text-brand-100 font-mono">
+                        <span>HUMAN BUYER</span>
+                        <span>{new Date(msg.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                      </div>
+                      <p className="text-sm leading-relaxed">{msg.text}</p>
                     </div>
-                    <p className="text-sm leading-relaxed">{msg.text}</p>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* System Welcome Message */}
-              {msg.sender === "AGENT" && msg.type === "SYSTEM_WELCOME" && (
-                <div className="flex justify-start">
-                  <div className="max-w-2xl bg-surface-alt border border-surface-border p-4 rounded-2xl rounded-tl-none shadow-sm space-y-2">
-                    <div className="flex items-center space-x-2 text-[10px] text-brand-500 font-mono font-bold">
-                      <span>🤖 BUYER AGENT</span>
+                {/* System Welcome Message */}
+                {msg.sender === "AGENT" && msg.type === "SYSTEM_WELCOME" && (
+                  <div className="flex justify-start">
+                    <div className="max-w-2xl bg-surface-alt border border-surface-border p-4 rounded-2xl rounded-tl-none shadow-sm space-y-2">
+                      <div className="flex items-center space-x-2 text-[10px] text-brand-500 font-mono font-bold">
+                        <span>🤖 BUYER AGENT</span>
+                      </div>
+                      <p className="text-sm text-ink-700 leading-relaxed">{msg.text}</p>
                     </div>
-                    <p className="text-sm text-ink-700 leading-relaxed">{msg.text}</p>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Error Message */}
-              {msg.sender === "AGENT" && msg.type === "ERROR" && (
-                <div className="flex justify-start">
-                  <div className="max-w-2xl bg-danger-dark/40 border border-danger/30 text-danger p-4 rounded-2xl rounded-tl-none shadow-sm">
-                    <p className="text-sm font-semibold">{msg.text}</p>
+                {/* Error Message */}
+                {msg.sender === "AGENT" && msg.type === "ERROR" && (
+                  <div className="flex justify-start">
+                    <div className="max-w-2xl bg-danger-dark/40 border border-danger/30 text-danger p-4 rounded-2xl rounded-tl-none shadow-sm">
+                      <p className="text-sm font-semibold">{msg.text}</p>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Agent Search Results Message */}
-              {msg.sender === "AGENT" && msg.type === "SEARCH_RESULTS" && (
-                <div className="flex justify-start space-y-3 w-full">
-                  <div className="w-full max-w-3xl bg-surface-alt border border-surface-border p-5 rounded-2xl rounded-tl-none shadow-sm space-y-4">
-                    {/* Header */}
-                    <div className="flex items-center justify-between border-b border-surface-border pb-3">
-                      <div className="flex items-center space-x-2">
-                        <span className="w-2.5 h-2.5 rounded-full bg-brand-500 shadow-glow inline-block" />
-                        <span className="text-xs font-bold text-white uppercase tracking-wide font-mono">
-                          Agent Intent Analysis & Catalog Match
+                {/* Agent Search Results Message */}
+                {msg.sender === "AGENT" && msg.type === "SEARCH_RESULTS" && (
+                  <div className="flex justify-start space-y-3 w-full">
+                    <div className="w-full max-w-3xl bg-surface-alt border border-surface-border p-5 rounded-2xl rounded-tl-none shadow-sm space-y-4">
+                      {/* Header */}
+                      <div className="flex items-center justify-between border-b border-surface-border pb-3">
+                        <div className="flex items-center space-x-2">
+                          <span className="w-2.5 h-2.5 rounded-full bg-brand-500 shadow-glow inline-block animate-pulseDot" />
+                          <span className="text-xs font-bold text-white uppercase tracking-wide font-mono">
+                            Agent Intent Analysis & Catalog Match
+                          </span>
+                        </div>
+                        <span className="text-[11px] text-ink-400 font-mono">
+                          Found {msg.matches.length} matching product(s)
                         </span>
                       </div>
-                      <span className="text-[11px] text-ink-400 font-mono">
-                        Found {msg.matches.length} matching product(s)
-                      </span>
-                    </div>
 
-                    {/* Parsed Intent Summary Pill */}
-                    {msg.intent && (
-                      <div className="bg-surface border border-surface-border p-3.5 rounded-xl space-y-1.5 font-mono text-xs">
-                        <div className="text-[10px] font-bold text-ink-400 uppercase tracking-wider">
-                          🎯 Buyer Intent Agent Structured Output
+                      {/* Parsed Intent Summary Pill */}
+                      {msg.intent && (
+                        <div className="bg-surface p-3 rounded-xl border border-surface-border space-y-2">
+                          <div className="text-[11px] font-bold text-brand-500 uppercase tracking-wide font-mono">
+                            Parsed Intent (Structured JSON):
+                          </div>
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-mono">
+                            <span className="bg-surface-alt border border-surface-border px-2 py-0.5 rounded">
+                              Category: <strong>{msg.intent.category || "all"}</strong>
+                            </span>
+                            <span className="bg-surface-alt border border-surface-border px-2 py-0.5 rounded">
+                              Qty: <strong>{msg.intent.quantity} units</strong>
+                            </span>
+                            <span className="bg-surface-alt border border-surface-border px-2 py-0.5 rounded">
+                              Max Price: <strong>{msg.intent.maxUnitPriceInPaise ? formatRupee(msg.intent.maxUnitPriceInPaise) : "Any"}</strong>
+                            </span>
+                            <span className="bg-surface-alt border border-surface-border px-2 py-0.5 rounded">
+                              Deadline: <strong>{msg.intent.deliveryDeadline ? `${msg.intent.deliveryDeadline} days` : "Any"}</strong>
+                            </span>
+                          </div>
                         </div>
-                        <div className="flex flex-wrap gap-2 text-white">
-                          {msg.intent.category && (
-                            <span className="bg-surface-alt border border-surface-border px-2 py-0.5 rounded">
-                              Category: <strong>{msg.intent.category}</strong>
-                            </span>
-                          )}
-                          <span className="bg-surface-alt border border-surface-border px-2 py-0.5 rounded">
-                            Qty: <strong>{msg.intent.quantity} units</strong>
-                          </span>
-                          {msg.intent.maxUnitPriceInPaise && (
-                            <span className="bg-surface-alt border border-surface-border px-2 py-0.5 rounded text-brand-500">
-                              Max Price: <strong>{formatRupee(msg.intent.maxUnitPriceInPaise)}</strong>
-                            </span>
-                          )}
-                          {msg.intent.deliveryDeadline && (
-                            <span className="bg-surface-alt border border-surface-border px-2 py-0.5 rounded">
-                              SLA: <strong>within {msg.intent.deliveryDeadline} days</strong>
-                            </span>
-                          )}
-                          {msg.intent.attributes && Object.keys(msg.intent.attributes).length > 0 && (
-                            <span className="bg-surface-alt border border-surface-border px-2 py-0.5 rounded">
-                              Specs: <strong>{JSON.stringify(msg.intent.attributes).replace(/[{}"]/g, "")}</strong>
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    )}
+                      )}
 
-                    {/* Product Matching Cards */}
-                    {msg.matches.length === 0 ? (
-                      <div className="p-4 text-center text-xs text-ink-400 italic bg-surface rounded-xl border border-surface-border">
-                        No products in the real catalog matched your exact constraints. Try adjusting target price or quantity.
-                      </div>
-                    ) : (
-                      <div className="space-y-4 pt-1">
-                        <div className="text-xs font-bold text-white">
-                          Matching Catalog Products (Ranked by Merchant Agent):
+                      {/* Product Matching Cards */}
+                      {msg.matches.length === 0 ? (
+                        <div className="p-4 text-center text-xs text-ink-400 italic bg-surface rounded-xl border border-surface-border">
+                          No products in the real catalog matched your exact constraints. Try adjusting target price or quantity.
                         </div>
+                      ) : (
+                        <div className="space-y-4 pt-1">
+                          <div className="text-xs font-bold text-white">
+                            Matching Catalog Products (Ranked by Merchant Agent):
+                          </div>
 
-                        {msg.matches.map((item, idx) => {
-                          const p = item.product;
-                          return (
-                            <div
-                              key={p._id || idx}
-                              className="p-4 bg-surface border border-surface-border rounded-xl shadow-sm space-y-3 hover:border-brand-500/40 transition-all"
-                            >
-                              {/* Product Header */}
-                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                                <div>
-                                  <h4 className="text-base font-bold text-white">{p.name}</h4>
-                                  <p className="text-xs text-ink-400">
-                                    Merchant: <strong className="text-ink-700">{p.merchantId?.name || "Verified Merchant"}</strong>
-                                  </p>
-                                </div>
-                                <div className="text-right">
-                                  <span className="text-lg font-extrabold text-brand-500 font-mono block">
-                                    {formatRupee(p.priceInPaise)} / unit
-                                  </span>
-                                  {p.minPriceInPaise < p.priceInPaise && (
-                                    <span className="text-[10px] text-ink-400 font-mono block">
-                                      Negotiable down to {formatRupee(p.minPriceInPaise)}
+                          {msg.matches.map((item, idx) => {
+                            const p = item.product;
+                            return (
+                              <div
+                                key={p._id || idx}
+                                className="p-4 bg-surface border border-surface-border rounded-xl shadow-sm space-y-3 hover:border-brand-500/40 transition-colors"
+                              >
+                                {/* Product Header */}
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                  <div>
+                                    <h4 className="text-base font-bold text-white">{p.name}</h4>
+                                    <p className="text-xs text-ink-400">
+                                      Merchant: <strong className="text-ink-700">{p.merchantId?.name || "Verified Merchant"}</strong>
+                                    </p>
+                                  </div>
+                                  <div className="text-right">
+                                    <span className="text-lg font-extrabold text-brand-500 font-mono block">
+                                      {formatRupee(p.priceInPaise)} / unit
                                     </span>
-                                  )}
+                                    {p.minPriceInPaise < p.priceInPaise && (
+                                      <span className="text-[10px] text-ink-400 font-mono block">
+                                        Negotiable down to {formatRupee(p.minPriceInPaise)}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* Badges Ribbon */}
+                                <div className="flex flex-wrap items-center gap-3 text-xs border-y border-surface-border py-2">
+                                  <span className="font-mono text-ink-700">
+                                    📦 Stock: <strong>{p.inventory} available</strong>
+                                  </span>
+                                  <span className="font-mono text-ink-700">
+                                    🚚 SLA: <strong>{p.deliveryMinDays}-{p.deliveryMaxDays} days</strong>
+                                  </span>
+                                  <span className="font-mono text-ink-700">
+                                    🛡️ Warranty: <strong>{p.warranty || "1 year"}</strong>
+                                  </span>
+                                </div>
+
+                                {/* Fact-based Explanation Callout */}
+                                <div className="bg-brand-500/10 border border-brand-500/30 p-2.5 rounded-lg text-xs text-brand-500 leading-relaxed font-sans">
+                                  <span className="font-bold text-white">💡 Merchant Agent Match Analysis: </span>
+                                  {item.explanation}
+                                </div>
+
+                                {/* Action Button */}
+                                <div className="flex justify-end pt-1">
+                                  <Button
+                                    variant="primary"
+                                    size="sm"
+                                    onClick={() => {
+                                      if (onInitiateNegotiation) {
+                                        onInitiateNegotiation({
+                                          productId: p._id,
+                                          quantity: msg.intent?.quantity || 1,
+                                          targetPriceInPaise: msg.intent?.maxUnitPriceInPaise || p.priceInPaise,
+                                          requestedDeliveryDays: msg.intent?.deliveryDeadline || p.deliveryMinDays || 3,
+                                          notes: msg.originalPrompt,
+                                        });
+                                      }
+                                    }}
+                                  >
+                                    🤝 Initiate AI Negotiation →
+                                  </Button>
                                 </div>
                               </div>
-
-                              {/* Badges Ribbon */}
-                              <div className="flex flex-wrap items-center gap-3 text-xs border-y border-surface-border py-2">
-                                <span className="font-mono text-ink-700">
-                                  📦 Stock: <strong>{p.inventory} available</strong>
-                                </span>
-                                <span className="font-mono text-ink-700">
-                                  🚚 SLA: <strong>{p.deliveryMinDays}-{p.deliveryMaxDays} days</strong>
-                                </span>
-                                <span className="font-mono text-ink-700">
-                                  🛡️ Warranty: <strong>{p.warranty || "1 year"}</strong>
-                                </span>
-                              </div>
-
-                              {/* Fact-based Explanation Callout */}
-                              <div className="bg-brand-500/10 border border-brand-500/30 p-2.5 rounded-lg text-xs text-brand-500 leading-relaxed font-sans">
-                                <span className="font-bold text-white">💡 Merchant Agent Match Analysis: </span>
-                                {item.explanation}
-                              </div>
-
-                              {/* Action Button */}
-                              <div className="flex justify-end pt-1">
-                                <Button
-                                  variant="primary"
-                                  size="sm"
-                                  onClick={() => {
-                                    if (onInitiateNegotiation) {
-                                      onInitiateNegotiation({
-                                        productId: p._id,
-                                        quantity: msg.intent?.quantity || 1,
-                                        targetPriceInPaise: msg.intent?.maxUnitPriceInPaise || p.priceInPaise,
-                                        requestedDeliveryDays: msg.intent?.deliveryDeadline || p.deliveryMinDays || 3,
-                                        notes: msg.originalPrompt,
-                                      });
-                                    }
-                                  }}
-                                >
-                                  🤝 Initiate AI Negotiation →
-                                </Button>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
-          ))}
+                )}
+              </motion.div>
+            ))}
+          </AnimatePresence>
 
           {/* Loading Indicator */}
           {isLoading && (
-            <div className="flex justify-start">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex justify-start"
+            >
               <div className="bg-surface-alt border border-surface-border p-4 rounded-2xl rounded-tl-none shadow-sm flex items-center space-x-3">
                 <span className="w-2.5 h-2.5 rounded-full bg-brand-500 animate-ping" />
-                <span className="text-xs text-ink-400 font-mono">
-                  Buyer Intent Agent parsing request & querying MongoDB catalog...
+                <span className="text-xs text-ink-400 font-mono animate-pulse">
+                  Buyer & Merchant AI Agents parsing intent and ranking Mongo catalog matches...
                 </span>
               </div>
-            </div>
+            </motion.div>
           )}
 
-          <div ref={chatEndRef} />
+
         </div>
 
-        {/* Input Area */}
+        {/* Quick Prompts & Chat Input Form Footer */}
         <div className="bg-surface-alt border-t border-surface-border p-4 space-y-3">
-          {/* Quick Suggestion Chips */}
-          <div className="flex items-center space-x-2 overflow-x-auto pb-1 text-xs">
+          {/* Quick Demo Prompts */}
+          <div className="flex items-center space-x-2 overflow-x-auto pb-1 no-scrollbar">
             <span className="text-ink-400 text-[10px] font-bold uppercase shrink-0 font-mono">Demo Examples:</span>
             {QUICK_PROMPTS.map((qp, i) => (
               <button
                 key={i}
                 onClick={() => setPromptInput(qp)}
-                className="px-2.5 py-1 rounded-lg bg-surface hover:bg-surface-border border border-surface-border text-ink-700 hover:text-white whitespace-nowrap text-[11px] transition-all font-medium"
+                className="px-2.5 py-1 rounded-lg bg-surface hover:bg-surface-border border border-surface-border text-ink-700 hover:text-white whitespace-nowrap text-[11px] transition-all duration-150 hover:scale-[1.02] hover:-translate-y-0.5 hover:border-slate-500/40 hover:shadow-sm font-medium"
               >
                 "{qp}"
               </button>

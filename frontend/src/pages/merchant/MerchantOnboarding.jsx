@@ -471,7 +471,7 @@ export default function MerchantOnboarding() {
           <div className="bg-surface p-4 rounded-xl border border-surface-border flex justify-between items-center text-xs">
             <div>
               <span className="font-semibold text-white block">Catalog Inventory Ready:</span>
-              <span className="text-ink-400">{catalogItems.length} products to be imported into AgentPay discovery node</span>
+              <span className="text-ink-400">{catalogItems.length} products to be imported into EscrowAI discovery node</span>
             </div>
             <Badge status="AGREED">{catalogItems.length} SKUs Ready</Badge>
           </div>
@@ -510,7 +510,7 @@ export default function MerchantOnboarding() {
         <div className="flex justify-between items-center">
           <div>
             <h2 className="text-lg font-semibold text-white">Onboarded Merchant Catalog Products</h2>
-            <p className="text-xs text-ink-400">Live products stored in AgentPay MongoDB discovery engine.</p>
+            <p className="text-xs text-ink-400">Live products stored in EscrowAI MongoDB discovery engine.</p>
           </div>
           <Badge status="COMPLETED">{merchantProducts.length} Products Active</Badge>
         </div>

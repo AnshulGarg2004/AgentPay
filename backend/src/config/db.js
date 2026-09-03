@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 export async function connectDB() {
-  const connStr = process.env.MONGODB_URI || "mongodb://localhost:27017/agentpay";
+  const connStr = process.env.MONGODB_URI || "mongodb://localhost:27017/escrowai";
   try {
     // Set a short server selection timeout for local dev so app doesn't hang if mongod isn't started yet
     await mongoose.connect(connStr, { serverSelectionTimeoutMS: 3000 });

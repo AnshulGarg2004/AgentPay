@@ -9,7 +9,7 @@ export function setupLiveActivityGateway(io) {
     socket.emit("agent.action", {
       actor: "POLICY_ENGINE",
       action: "GATEWAY_CONNECTED",
-      reason: "Live AgentPay Protocol Feed Connected",
+      reason: "Live EscrowAI Protocol Feed Connected",
       result: "ACTIVE",
       timestamp: new Date(),
     });

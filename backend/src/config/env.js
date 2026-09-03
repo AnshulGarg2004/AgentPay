@@ -2,7 +2,7 @@ import "dotenv/config";
 
 export const config = {
   port: process.env.PORT || 4000,
-  mongoUri: process.env.MONGODB_URI || "mongodb://localhost:27017/agentpay",
+  mongoUri: process.env.MONGODB_URI || "mongodb://localhost:27017/escrowai",
   razorpayKeyId: process.env.RAZORPAY_KEY_ID,
   razorpayKeySecret: process.env.RAZORPAY_KEY_SECRET,
   razorpayWebhookSecret: process.env.RAZORPAY_WEBHOOK_SECRET,

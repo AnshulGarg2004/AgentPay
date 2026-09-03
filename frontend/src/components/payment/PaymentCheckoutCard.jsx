@@ -80,11 +80,11 @@ export default function PaymentCheckoutCard({ transaction, onStateUpdated }) {
         key: validKey,
         amount: txn.amountInPaise,
         currency: "INR",
-        name: "AgentPay Escrow",
+        name: "EscrowAI Escrow",
         description: `Escrow Payment for ${txn.productId?.name || "B2B Order"}`,
         prefill: {
-          name: "AgentPay Buyer Agent",
-          email: "buyer@agentpay.demo",
+          name: "EscrowAI Buyer Agent",
+          email: "buyer@escrowai.demo",
           contact: "9876543210",
         },
         theme: {
@@ -272,7 +272,7 @@ export default function PaymentCheckoutCard({ transaction, onStateUpdated }) {
                     HERO DEMO: Payment Timeout Held in PAYMENT_VERIFICATION
                   </h3>
                   <p className="text-xs text-ink-400 mt-0.5">
-                    AgentPay protocol locked state in <code>PAYMENT_VERIFICATION</code> to prevent double-charging. Awaiting Razorpay Webhook.
+                    EscrowAI protocol locked state in <code>PAYMENT_VERIFICATION</code> to prevent double-charging. Awaiting Razorpay Webhook.
                   </p>
                 </div>
               </div>
@@ -320,7 +320,7 @@ export default function PaymentCheckoutCard({ transaction, onStateUpdated }) {
               <div className="w-12 h-12 rounded-full bg-success text-white flex items-center justify-center text-2xl font-bold mx-auto">
                 ✓
               </div>
-              <h3 className="text-lg font-bold text-success">🎉 Transaction Paid & Settled via AgentPay Escrow</h3>
+              <h3 className="text-lg font-bold text-success">🎉 Transaction Paid & Settled via EscrowAI Escrow</h3>
               <p className="text-xs text-ink-400 font-mono">
                 Razorpay Payment ID: {txn.razorpayPaymentId || "pay_verified"}
               </p>

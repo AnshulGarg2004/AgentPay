@@ -59,7 +59,7 @@ export default function QuoteCard({ quote, onAcceptQuote }) {
       <div className="text-xs text-ink-400 space-y-1">
         <div>• Warranty: {quote.terms?.warranty || "Standard 1 year"}</div>
         <div>• Returns: {quote.terms?.returnPolicyDays || 7} days return policy included</div>
-        <div>• Price Lock: Guaranteed by AgentPay escrow protocol until quote expiration</div>
+        <div>• Price Lock: Guaranteed by EscrowAI escrow protocol until quote expiration</div>
       </div>
 
       {/* Expiry Banner or Action Button */}

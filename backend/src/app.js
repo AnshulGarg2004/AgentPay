@@ -20,7 +20,7 @@ app.use(express.json({ limit: "10mb" }));
 
 // Health Check
 app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", service: "AgentPay backend" });
+  res.json({ status: "ok", service: "EscrowAI backend" });
 });
 
 // Routes

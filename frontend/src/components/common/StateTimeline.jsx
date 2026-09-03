@@ -30,7 +30,7 @@ export default function StateTimeline({ currentState }) {
     <div className="space-y-4 bg-surface-alt p-4 rounded-2xl border border-surface-border shadow-card relative overflow-hidden">
       <div className="flex items-center justify-between">
         <h4 className="text-xs font-bold uppercase tracking-wider text-ink-400">
-          AgentPay Lifecycle Protocol
+          EscrowAI Lifecycle Protocol
         </h4>
         <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.2)]">
           State: {currentState}

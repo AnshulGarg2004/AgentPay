@@ -1,5 +1,5 @@
 async function runFullPipelineE2E() {
-  console.log("=== AGENTPAY END-TO-END PIPELINE INTEGRATION TEST ===");
+  console.log("=== ESCROWAI END-TO-END PIPELINE INTEGRATION TEST ===");
 
   const prompt = "50 ergonomic office chairs, black, under ₹7,500 each, delivered within 10 days";
 

@@ -1,7 +1,7 @@
-# AgentPay — Design.md
+# EscrowAI — Design.md
 ### Visual & UX Design Specification
 
-> Give this to your AI coding assistant alongside `AgentPay_Build_Plan.md`. This file is the single source of truth for how every screen and component should look — colors, type, spacing, component anatomy, and page-by-page layout. Strictly Tailwind CSS; no inline styles, no other CSS frameworks.
+> Give this to your AI coding assistant alongside `EscrowAI_Build_Plan.md`. This file is the single source of truth for how every screen and component should look — colors, type, spacing, component anatomy, and page-by-page layout. Strictly Tailwind CSS; no inline styles, no other CSS frameworks.
 
 ---
 

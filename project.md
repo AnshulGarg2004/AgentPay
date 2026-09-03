@@ -1,15 +1,15 @@
-# AgentPay
+# EscrowAI
 ### The Trust & Transaction Layer for AI-Native Commerce
 
 **Track 01 — AI Growth & Agentic Commerce | Razorpay Hackathon**
 
-> This is the master project doc. Give it to your AI coding assistant first — it explains *what* AgentPay is and *why*, then points to the other three docs for *how* to build it.
+> This is the master project doc. Give it to your AI coding assistant first — it explains *what* EscrowAI is and *why*, then points to the other three docs for *how* to build it.
 
 ---
 
 ## 1. The One-Line Pitch
 
-AgentPay makes merchants safely transactable by autonomous AI buyers — through machine-readable commerce, agent negotiation, financial guardrails, Razorpay payments, and autonomous transaction recovery.
+EscrowAI makes merchants safely transactable by autonomous AI buyers — through machine-readable commerce, agent negotiation, financial guardrails, Razorpay payments, and autonomous transaction recovery.
 
 ---
 
@@ -31,10 +31,10 @@ For that to work reliably, five things have to exist that don't today:
 
 ## 3. The Solution
 
-AgentPay is a **Commerce Trust Layer** that sits between AI buyer agents, AI merchant agents, and Razorpay:
+EscrowAI is a **Commerce Trust Layer** that sits between AI buyer agents, AI merchant agents, and Razorpay:
 
 ```
-AI BUYER → AgentPay Commerce Layer → [Discovery | Negotiation | Policies] → Transaction Engine → Razorpay → Webhooks → Verification → Audit Ledger
+AI BUYER → EscrowAI Commerce Layer → [Discovery | Negotiation | Policies] → Transaction Engine → Razorpay → Webhooks → Verification → Audit Ledger
 ```
 
 The core architectural bet: **the LLM proposes, it never decides.** Every AI-suggested action (a discount, a purchase, a refund) passes through a deterministic policy engine — plain code, fully testable, with zero LLM involvement — before any money moves.
@@ -77,7 +77,7 @@ The demo uses **B2B office/electronics procurement** (laptops, monitors, keyboar
 "We're not building an AI that recommends products to a human. We're building the merchant-side infrastructure that lets autonomous AI agents safely transact with merchants directly — discovery, negotiation, policy, payment, and recovery, end to end."
 
 **vs. a normal payment gateway:**
-"A payment gateway moves money after a purchase decision has already been made by a human. AgentPay governs the entire machine-to-machine commercial interaction — before, during, and after payment."
+"A payment gateway moves money after a purchase decision has already been made by a human. EscrowAI governs the entire machine-to-machine commercial interaction — before, during, and after payment."
 
 ---
 
@@ -103,7 +103,7 @@ The demo uses **B2B office/electronics procurement** (laptops, monitors, keyboar
 | Realtime | Socket.IO (Live Activity Feed) |
 | Idempotency / reservations / dedupe | MongoDB TTL + unique indexes — no Redis, no Docker |
 
-Full detail in `AgentPay_Build_Plan.md`.
+Full detail in `EscrowAI_Build_Plan.md`.
 
 ---
 
@@ -127,12 +127,12 @@ Rehearse exactly this path. Don't demo anything outside it live.
 
 This project has four docs — read them in this order:
 
-1. **`project.md`** *(this file)* — what AgentPay is, why it matters, the demo story
-2. **`AgentPay_Build_Plan.md`** — folder structure, tech stack, database schema, API contract, phased build order
-3. **`AgentPay_Setup_Guide.md`** — exact terminal commands to scaffold and run both servers
+1. **`project.md`** *(this file)* — what EscrowAI is, why it matters, the demo story
+2. **`EscrowAI_Build_Plan.md`** — folder structure, tech stack, database schema, API contract, phased build order
+3. **`EscrowAI_Setup_Guide.md`** — exact terminal commands to scaffold and run both servers
 4. **`design.md`** — colors, typography, component specs, and page-by-page UI layout (Tailwind only)
 
-Give an AI coding assistant all four and say: *"Read project.md for context, then follow AgentPay_Build_Plan.md Section 10 phase by phase, using design.md for every UI component."*
+Give an AI coding assistant all four and say: *"Read project.md for context, then follow EscrowAI_Build_Plan.md Section 10 phase by phase, using design.md for every UI component."*
 
 ---
 

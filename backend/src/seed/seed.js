@@ -6,7 +6,7 @@ import Product from "../models/Product.model.js";
 import BuyerAgent from "../models/BuyerAgent.model.js";
 
 async function seed() {
-  console.log("🌱 Starting AgentPay seed process...");
+  console.log("🌱 Starting EscrowAI seed process...");
   await connectDB();
 
   try {

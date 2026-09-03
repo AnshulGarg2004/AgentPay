@@ -1,6 +1,6 @@
-# AgentPay — Setup Guide (Start Here)
+# EscrowAI — Setup Guide (Start Here)
 
-Follow this top to bottom in your terminal. It scaffolds both `frontend/` and `backend/`, wires up Tailwind, Mongoose, Socket.IO, Razorpay, and Groq, and gets you to a running "Hello AgentPay" on both servers. After this, hand `AgentPay_Build_Plan.md` to your AI coding assistant to build out the actual features phase by phase.
+Follow this top to bottom in your terminal. It scaffolds both `frontend/` and `backend/`, wires up Tailwind, Mongoose, Socket.IO, Razorpay, and Groq, and gets you to a running "Hello EscrowAI" on both servers. After this, hand `EscrowAI_Build_Plan.md` to your AI coding assistant to build out the actual features phase by phase.
 
 ---
 
@@ -18,7 +18,7 @@ Follow this top to bottom in your terminal. It scaffolds both `frontend/` and `b
 ## 1. Create the monorepo
 
 ```bash
-mkdir agentpay && cd agentpay
+mkdir escrowai && cd escrowai
 git init
 mkdir frontend backend
 ```
@@ -53,7 +53,7 @@ Set `backend/package.json` scripts:
 
 Create `backend/.env`:
 ```
-MONGODB_URI=mongodb://localhost:27017/agentpay
+MONGODB_URI=mongodb://localhost:27017/escrowai
 RAZORPAY_KEY_ID=rzp_test_xxxxx
 RAZORPAY_KEY_SECRET=xxxxx
 RAZORPAY_WEBHOOK_SECRET=xxxxx
@@ -113,7 +113,7 @@ app.use(cors());
 app.use(express.json());
 
 app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", service: "AgentPay backend" });
+  res.json({ status: "ok", service: "EscrowAI backend" });
 });
 
 export default app;
@@ -142,7 +142,7 @@ async function start() {
   app.set("io", io); // access via req.app.get("io") in controllers
 
   server.listen(PORT, () => {
-    console.log(`🚀 AgentPay backend running on http://localhost:${PORT}`);
+    console.log(`🚀 EscrowAI backend running on http://localhost:${PORT}`);
   });
 }
 
@@ -156,7 +156,7 @@ import { groq, GROQ_MODEL } from "../config/groq.js";
 
 const res = await groq.chat.completions.create({
   model: GROQ_MODEL,
-  messages: [{ role: "user", content: "Reply with just: AgentPay AI online" }],
+  messages: [{ role: "user", content: "Reply with just: EscrowAI AI online" }],
 });
 console.log(res.choices[0].message.content);
 ```
@@ -185,7 +185,7 @@ npm install -D tailwindcss postcss autoprefixer
 npx tailwindcss init -p
 ```
 
-**`frontend/tailwind.config.js`** — replace `content` and add the design tokens from `AgentPay_Build_Plan.md` Section 4:
+**`frontend/tailwind.config.js`** — replace `content` and add the design tokens from `EscrowAI_Build_Plan.md` Section 4:
 ```js
 /** @type {import('tailwindcss').Config} */
 export default {
@@ -252,7 +252,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-surface-alt flex items-center justify-center">
       <div className="bg-white rounded-2xl shadow-card border border-surface-border p-8 text-center">
-        <h1 className="text-2xl mb-2">AgentPay</h1>
+        <h1 className="text-2xl mb-2">EscrowAI</h1>
         <p className="text-ink-400">Frontend is wired up. Tailwind is live.</p>
       </div>
     </div>
@@ -281,7 +281,7 @@ Groq's API is OpenAI-compatible and supports tool/function calling, which the pl
 
 ## 5. Folder structure reference
 
-Once both `npm run dev` commands work, follow `AgentPay_Build_Plan.md`:
+Once both `npm run dev` commands work, follow `EscrowAI_Build_Plan.md`:
 - **Section 3** for the full file/folder layout to create as you go
 - **Section 5** for the Mongoose schemas
 - **Section 10** for the phase-by-phase build order (don't skip ahead)
@@ -299,4 +299,4 @@ cd backend && npm run dev
 cd frontend && npm run dev
 ```
 
-Once Phase 0 scaffolding above is done, hand the build plan + this setup guide to your AI coding assistant and say: *"Follow AgentPay_Build_Plan.md Section 10, Phase 1 onward — the backend and frontend are already scaffolded and running."*
+Once Phase 0 scaffolding above is done, hand the build plan + this setup guide to your AI coding assistant and say: *"Follow EscrowAI_Build_Plan.md Section 10, Phase 1 onward — the backend and frontend are already scaffolded and running."*
