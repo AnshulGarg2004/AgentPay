@@ -17,13 +17,13 @@ export default function PriceComparisonBar({
 
   return (
     <div className="p-4 bg-surface border border-surface-border rounded-2xl space-y-4 font-sans">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
           <h4 className="text-xs font-bold uppercase tracking-wider text-white">Price Negotiation Settlement Scale</h4>
           <p className="text-[11px] text-ink-400 mt-0.5">Original ask vs buyer target vs final negotiated quote</p>
         </div>
         {discountPaise > 0 && (
-          <span className="text-xs font-mono font-bold text-success bg-success-dark/30 border border-success/30 px-2.5 py-1 rounded-full">
+          <span className="text-xs font-mono font-bold text-success bg-success-dark/30 border border-success/30 px-2.5 py-1 rounded-full shrink-0 self-start sm:self-auto">
             Saved {formatRupee(discountPaise)} ({discountPct}% discount)
           </span>
         )}

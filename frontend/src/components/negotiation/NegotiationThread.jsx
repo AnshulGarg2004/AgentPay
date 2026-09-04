@@ -370,14 +370,14 @@ export default function NegotiationThread({
                   offerPriceInPaise={initialTargetPriceInPaise || negotiation.agreedOffer?.unitPriceInPaise}
                   agreedPriceInPaise={negotiation.agreedOffer?.unitPriceInPaise}
                 />
-                <div className="p-4 bg-success-dark/40 border border-success/30 rounded-xl flex items-center justify-between">
-                  <div>
+                <div className="p-4 bg-success-dark/40 border border-success/30 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="min-w-0">
                     <h4 className="text-sm font-bold text-success">🎉 Terms Agreed by Merchant AI!</h4>
                     <p className="text-xs text-ink-400 mt-0.5">
                       Final Agreed Unit Price: {formatRupee(negotiation.agreedOffer?.unitPriceInPaise)} | Qty: {negotiation.agreedOffer?.quantity}
                     </p>
                   </div>
-                  <Button variant="primary" disabled={isLoading} onClick={handleGenerateQuote}>
+                  <Button variant="primary" className="w-full sm:w-auto shrink-0" disabled={isLoading} onClick={handleGenerateQuote}>
                     {isLoading ? "Generating Quote..." : "📜 Lock & Generate Immutable Quote"}
                   </Button>
                 </div>

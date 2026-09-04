@@ -65,12 +65,12 @@ export default function OfferBubble({ offer, onAccept }) {
 
       {/* Accept Counter Offer Button inside Merchant Bubble */}
       {isMerchant && (offer.action?.toUpperCase() === "COUNTER" || offer.action?.toUpperCase() === "OFFER") && onAccept && (
-        <div className="mt-3 pt-2.5 border-t border-surface-border flex items-center justify-between">
+        <div className="mt-3 pt-2.5 border-t border-surface-border flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <span className="text-[11px] text-ink-400 font-medium">Merchant proposed terms</span>
           <button
             type="button"
             onClick={() => onAccept(offer)}
-            className="px-3.5 py-1.5 bg-success text-white font-bold rounded-xl text-xs hover:bg-success-dark transition-all shadow-glow flex items-center space-x-1.5 cursor-pointer"
+            className="px-3.5 py-1.5 bg-success text-white font-bold rounded-xl text-xs hover:bg-success-dark transition-all shadow-glow flex items-center justify-center space-x-1.5 cursor-pointer w-full sm:w-auto shrink-0"
           >
             <span>✅ Accept Merchant Offer ({formatRupee(offer.unitPriceInPaise)})</span>
           </button>
